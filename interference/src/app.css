@@ -1,0 +1,35 @@
+@import "tailwindcss";
+
+/* The whole demo is a dark scene; without this the page behind it stays white
+   and the light heading text is unreadable on a projector. */
+html,
+body {
+  background: #111215;
+  color: #e0e2e6;
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+    "Segoe UI", sans-serif;
+}
+
+.demo-shell {
+  min-height: 100dvh;
+}
+
+.demo-panel {
+  background: #1b1d22;
+  border: 1px solid #282b33;
+}
+
+input[type="range"] {
+  accent-color: #2dd4bf;
+}
+
+button:focus-visible,
+input:focus-visible {
+  outline: 2px solid #2dd4bf;
+  outline-offset: 2px;
+}

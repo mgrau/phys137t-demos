@@ -1,0 +1,10 @@
+{
+  "name": "phys137t-demos",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "check": "npm --prefix interference run check && npm --prefix quantum_jumps run check",
+    "build": "bash scripts/build.sh",
+    "dev": "npm run build && ./quantum_jumps/node_modules/.bin/vite dist --host 127.0.0.1 --port 5175"
+  }
+}
