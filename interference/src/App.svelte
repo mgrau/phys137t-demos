@@ -132,12 +132,9 @@
 
 <svelte:window onkeydown={onKeydown} />
 
-<!-- The column is capped for reading at a desk, but uncapped in fullscreen:
-     a 64rem column centred on a projector is mostly black bars. -->
 <main
   bind:this={mainEl}
-  class="demo-shell mx-auto space-y-4 p-3 sm:p-5
-         {isFullscreen ? 'max-w-none' : 'max-w-5xl'}"
+  class="demo-shell p-3 sm:p-4"
   style="color: var(--text)"
 >
   <header class="flex items-start justify-between gap-3">
@@ -190,13 +187,13 @@
     </div>
   </header>
 
-  <section class="grid gap-4 md:grid-cols-[1fr_2fr]">
-    <div class="space-y-2">
+  <section class="scene-row grid gap-3 md:grid-cols-[1fr_2fr]">
+    <div class="scene-col flex flex-col gap-1.5">
       <h2 class="section-label text-xs font-medium uppercase tracking-wide">
         {slits === 2 ? 'Two slits' : 'One slit'}
       </h2>
-      <!-- Wrapped in .scene-panel: this canvas depicts a beam in a dark room,
-           so it stays dark in both themes. -->
+      <!-- .scene-panel keeps a fixed dark ground in both themes: this is an
+           image of light in a dark room, not a drawing of hardware. -->
       <div class="scene-panel">
         <WaveField
           {wavelengthNm}
@@ -216,7 +213,7 @@
       {/if}
     </div>
 
-    <div class="space-y-2">
+    <div class="scene-col flex flex-col gap-1.5">
       <h2 class="section-label text-xs font-medium uppercase tracking-wide">
         The screen
         {#if mode === 'particles'}
@@ -232,7 +229,7 @@
     </div>
   </section>
 
-  <section class="demo-panel flex flex-wrap items-center gap-2 rounded-lg p-3">
+  <section class="demo-panel flex flex-shrink-0 flex-wrap items-center gap-2 rounded-lg p-3">
     <button
       class="btn {mode === 'wave' ? 'btn-primary' : 'btn-secondary'}"
       onclick={() => (mode = 'wave')}
@@ -275,7 +272,7 @@
     </button>
   </section>
 
-  <section class="demo-panel grid gap-4 rounded-lg p-4 sm:grid-cols-2 lg:grid-cols-4">
+  <section class="demo-panel grid flex-shrink-0 gap-x-5 gap-y-3 rounded-lg p-3 sm:grid-cols-2 lg:grid-cols-4">
     <label class="space-y-1 text-sm">
       <span class="control-label">Wavelength</span>
       <input type="range" min="380" max="750" step="1" bind:value={wavelengthNm} class="w-full" />

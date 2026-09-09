@@ -58,17 +58,41 @@ window.addEventListener('storage', (e) => {
 });
 
 /**
- * Colours for the canvases that adapt — the Rabi chart and the level diagram.
- *
- * These are a diagram and a plot, so they follow the theme. The trap does not:
- * it depicts a glowing ion in a vacuum chamber, and a white background behind
- * it would be a lie about what a trap looks like. It stays dark in both themes
- * inside a `.scene-panel`.
+ * Colours for the canvases. All three of this demo's drawings follow the theme
+ * — the Rabi chart, the level diagram and the trap.
  *
  * Kept in JS rather than read back out of CSS because most of these have no DOM
  * equivalent (grid lines, error bars, the theory curve). The neutrals here are
  * the same values as the tokens in app.css and must be changed together.
  */
+/**
+ * The trap drawing.
+ *
+ * It follows the theme, unlike Interference's wave field and screen. Those are
+ * images of light in a dark room; this is a drawing of hardware, and a drawing
+ * can sit on paper.
+ *
+ * The one thing that cannot simply flip is the fluorescing ion. White-hot reads
+ * as "emitting" against near-black and as "washed out" against white, so on a
+ * light ground the core becomes the saturated wavelength instead — the ion is
+ * brightest by being the most colour on the panel rather than the most light.
+ */
+export interface TrapPalette {
+  /** Electrode body gradient: shadowed rim -> lit centre. */
+  metalEdge: string;
+  metalMid: string;
+  metalCore: string;
+  metalStroke: string;
+  /** The bore through the ring. A hole, so darker than the metal in both
+      themes — on light that means darker, not lighter. */
+  cavity: string;
+  cavityInner: string;
+  /** Innermost stop of the bright ion's core gradient. */
+  ionCore: string;
+  /** Label text on the drawing. */
+  label: string;
+}
+
 export interface Palette {
   text: string;
   textDim: string;
@@ -86,6 +110,7 @@ export interface Palette {
   c194: string;
   c282: string;
   darkState: string;
+  trap: TrapPalette;
   /**
    * Palette colour + alpha -> rgba(), with the alpha remapped for the ground
    * it lands on.
@@ -110,34 +135,54 @@ function alphaFn(floor: number) {
 }
 
 const DARK: Palette = {
-  text: '#e0e2e6',
-  textDim: '#858b96',
-  textFaint: '#6b727d',
-  line: '#3a3e48',
-  grid: 'rgba(255,255,255,0.05)',
-  panel: '#16181c',
-  data: '#c8ccd4',
-  theory: 'rgba(200,208,220,0.5)',
-  cursor: 'rgba(160,165,175,0.18)',
+  text: '#dfe2e8',
+  textDim: '#838b98',
+  textFaint: '#6a7280',
+  line: '#3a4150',
+  grid: 'rgba(220,235,255,0.06)',
+  panel: '#16191e',
+  data: '#c6ccd6',
+  theory: 'rgba(198,204,214,0.5)',
+  cursor: 'rgba(160,170,190,0.18)',
   c194: '#818cf8',
   c282: '#c084fc',
   darkState: '#f06b8a',
+  trap: {
+    metalEdge: '#1e3044',
+    metalMid: '#4a6478',
+    metalCore: '#6a8498',
+    metalStroke: 'rgba(140,170,200,0.25)',
+    cavity: '#1a2028',
+    cavityInner: '#111820',
+    ionCore: 'rgba(255,255,255,0.92)',
+    label: '#6a7280',
+  },
   alpha: alphaFn(0),
 };
 
 const LIGHT: Palette = {
-  text: '#1a1c21',
-  textDim: '#646a75',
-  textFaint: '#838a95',
-  line: '#c2c7d0',
-  grid: 'rgba(0,0,0,0.06)',
-  panel: '#f2f4f7',
-  data: '#3a4048',
-  theory: 'rgba(60,66,76,0.45)',
-  cursor: 'rgba(40,45,55,0.16)',
+  text: '#14171d',
+  textDim: '#5f6775',
+  textFaint: '#7d8695',
+  line: '#bfc7d6',
+  grid: 'rgba(15,30,60,0.08)',
+  panel: '#eff2f7',
+  data: '#333a45',
+  theory: 'rgba(51,58,69,0.45)',
+  cursor: 'rgba(30,40,60,0.16)',
   c194: '#4f5bd5',
   c282: '#9333ea',
   darkState: '#d1416a',
+  trap: {
+    metalEdge: '#7d92a4',
+    metalMid: '#a9bccb',
+    metalCore: '#c4d2dd',
+    metalStroke: 'rgba(45,75,105,0.35)',
+    cavity: '#69798a',
+    cavityInner: '#53616e',
+    ionCore: 'rgba(34,42,140,0.92)',
+    label: '#5f6775',
+  },
   alpha: alphaFn(0.35),
 };
 

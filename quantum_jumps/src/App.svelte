@@ -263,7 +263,7 @@
 
   <!-- Content: responsive grid -->
   <div class="content-grid">
-    <div class="trap-panel scene-panel">
+    <div class="trap-panel panel-bg">
       <Trap {ionState} compact={isMobile} />
     </div>
     <div class="levels-panel panel-bg">

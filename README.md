@@ -87,17 +87,20 @@ measurement, which is why the measurement quiz leads this list.
 
 ## Design language
 
-The hub chrome and both demos are deliberately **achromatic**. Every demo
-paints with physics-driven colour — the visible spectrum in Interference, the
-194 nm and 282 nm violets in Quantum jumps — so an accent hue in the chrome
-would read as though it meant something. Selection and active states are
-carried by contrast instead: a near-white fill (`#E6E8EC`) on dark, plus a rule
-on the active sidebar row. Focus rings are `#8FA0BF`.
+The chrome carries **one accent — a warm slate blue** — and nothing else. It is
+confined to active fills, the selected-row rule, the slider thumb and focus
+rings. The neutrals take a matching cool bias so they read as chosen rather than
+as default grey.
 
-The same rule applies inside a demo: where two things on one plot need telling
-apart, separate them by *form*, not hue. The Rabi theory curve is dashed rather
-than coloured, so the measured points stay the only thing on the plot that came
-from the experiment.
+Everything else on screen stays out of its way, because every demo paints with
+physics-driven colour and a second UI hue would read as though it meant
+something: the visible spectrum in Interference, the 194 nm and 282 nm violets
+in Quantum jumps. Plots and diagrams keep their own neutrals — the measured
+points are grey because the data is not a category.
+
+Where two things on one plot need telling apart, separate them by *form*, not
+hue. The Rabi theory curve is dashed rather than coloured, so the measured
+points stay the only thing on the plot that came from the experiment.
 
 ## Light and dark
 
@@ -106,12 +109,19 @@ fullscreen (`D`, or the button). Light is **designed rather than inverted** —
 the neutrals keep a slight cool bias, and `--fill` holds its meaning (maximum
 contrast against the page) by flipping from near-white to near-black.
 
-**Not everything flips.** A canvas that *depicts the apparatus* stays dark in
-both themes, because it shows light in a dark room and inverting it would be
-physically wrong: the wave field, the screen, the ion trap. A canvas that is a
-*diagram or a plot* follows the theme: the Rabi chart, the level diagram. The
-dark ones sit in a `.scene-panel`, which supplies the fixed dark ground and the
-border that keeps it from floating on a light page.
+**Not everything flips.** Interference's wave field and screen stay dark in
+both themes: they are images of light in a dark room, and inverting a fringe
+pattern would be a lie about what one looks like. They sit in a `.scene-panel`,
+which supplies the fixed dark ground and a border so it does not float on a
+light page.
+
+Everything else follows the theme, including the ion trap — that one is a
+*drawing of hardware*, and a drawing can sit on paper. Its one hard part is the
+fluorescing ion: white-hot reads as "emitting" against near-black and as
+"washed out" against white, so on light the core becomes the saturated
+wavelength instead. The ion is brightest by being the most *colour* on the
+panel rather than the most *light*. See `TrapPalette` in
+`quantum_jumps/src/lib/theme.svelte.ts`.
 
 Transparency does not survive the flip unchanged. A 25%-opacity violet still
 carries against near-black but disappears against white, so the light palette
