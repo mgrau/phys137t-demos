@@ -11,6 +11,12 @@
     snapDuration,
     type BinData,
   } from './lib/physics';
+  import { theme } from './lib/theme.svelte';
+  // The hub carries its own theme toggle in its workspace bar, so hide this one
+  // when we are the framed demo rather than showing two moons 40px apart. The
+  // fullscreen button stays: framing does not make it redundant.
+  const embedded = window.self !== window.top;
+
 
   // ═══════════════ State ═══════════════
 
@@ -179,6 +185,10 @@
       case 'F':
         toggleFullscreen();
         break;
+      case 'd':
+      case 'D':
+        theme.toggle();
+        break;
     }
   }
 
@@ -205,32 +215,55 @@
           href="https://doi.org/10.1103/PhysRevLett.57.1699"
           target="_blank"
           rel="noopener"
-          style="color:#8A919B;text-decoration:none;border-bottom:1px solid #3A3E48;"
+          style="color:var(--text-dim);text-decoration:none;border-bottom:1px solid var(--line-strong);"
         >
           Bergquist <i>et al.</i>, PRL <b>57</b>, 1699 (1986)
         </a>
       </p>
     </div>
-    <button
-      onclick={toggleFullscreen}
-      title={isFullscreen ? 'Exit fullscreen (F)' : 'Fullscreen (F)'}
-      class="fullscreen-btn"
-    >
-      {#if isFullscreen}
-        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-          <path d="M4 14h6v6M20 10h-6V4M14 10l7-7M3 21l7-7" />
-        </svg>
-      {:else}
-        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-          <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" />
-        </svg>
+    <div class="header-controls">
+      {#if !embedded}
+      <button
+        onclick={() => theme.toggle()}
+        title={theme.isDark ? 'Light mode (D)' : 'Dark mode (D)'}
+        aria-label={theme.isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+        class="icon-btn"
+      >
+        {#if theme.isDark}
+          <!-- Currently dark, so offer the sun. -->
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <circle cx="12" cy="12" r="4" />
+            <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" />
+          </svg>
+        {:else}
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z" />
+          </svg>
+        {/if}
+      </button>
       {/if}
-    </button>
+      <button
+        onclick={toggleFullscreen}
+        title={isFullscreen ? 'Exit fullscreen (F)' : 'Fullscreen (F)'}
+        aria-label={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
+        class="icon-btn"
+      >
+        {#if isFullscreen}
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <path d="M4 14h6v6M20 10h-6V4M14 10l7-7M3 21l7-7" />
+          </svg>
+        {:else}
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" />
+          </svg>
+        {/if}
+      </button>
+    </div>
   </header>
 
   <!-- Content: responsive grid -->
   <div class="content-grid">
-    <div class="trap-panel panel-bg">
+    <div class="trap-panel scene-panel">
       <Trap {ionState} compact={isMobile} />
     </div>
     <div class="levels-panel panel-bg">
@@ -298,9 +331,9 @@
         onclick={() => (showTheory = !showTheory)}
         class="btn btn-theory"
         style="{btnBase}margin-left:auto;
-               background:{showTheory ? '#E6E8EC' : 'transparent'};
-               border-color:{showTheory ? '#E6E8EC' : '#282B33'};
-               color:{showTheory ? '#111215' : '#707880'};"
+               background:{showTheory ? 'var(--fill)' : 'transparent'};
+               border-color:{showTheory ? 'var(--fill)' : 'var(--line)'};
+               color:{showTheory ? 'var(--on-fill)' : 'var(--text-faint)'};"
       >
         sin²(Ωt/2)
       </button>
@@ -309,6 +342,6 @@
 
   <!-- Keyboard hints (desktop only) -->
   <div class="keyboard-hints">
-    Space run · B batch · S sweep · C clear · ← → adjust · T theory · F fullscreen
+    Space run · B batch · S sweep · C clear · ← → adjust · T theory · D theme · F fullscreen
   </div>
 </main>

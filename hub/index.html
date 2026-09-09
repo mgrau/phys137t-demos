@@ -6,6 +6,20 @@
     <meta name="theme-color" content="#111215" />
     <title>PHYS 137T Interactive Demos</title>
     <link rel="stylesheet" href="./styles.css" />
+    <script>
+      // Inline and before the stylesheet paints, so a stored light preference
+      // does not flash dark on load. The same key and attribute the demos use;
+      // see demos/README.md for the contract.
+      try {
+        var t = localStorage.getItem('phys137t-theme');
+        if (t !== 'light' && t !== 'dark') {
+          t = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        }
+        document.documentElement.dataset.theme = t;
+      } catch (e) {
+        /* localStorage can throw in private mode; the CSS default covers us. */
+      }
+    </script>
   </head>
   <body>
     <div class="hub-shell">
@@ -28,10 +42,13 @@
             <h2 id="active-title"></h2>
             <p class="workspace-description" id="active-description"></p>
           </div>
-          <a id="open-demo" href="./interference/" target="_blank" rel="noopener">
-            Open demo
-            <span aria-hidden="true">↗</span>
-          </a>
+          <div class="workspace-actions">
+            <button id="theme-toggle" type="button" class="icon-btn"></button>
+            <a id="open-demo" href="./interference/" target="_blank" rel="noopener">
+              Open demo
+              <span aria-hidden="true">↗</span>
+            </a>
+          </div>
         </header>
         <div class="demo-frame-wrap">
           <iframe id="demo-frame" title="Interactive demonstration" allow="fullscreen"></iframe>

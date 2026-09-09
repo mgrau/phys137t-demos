@@ -7,6 +7,8 @@
    * Term symbols rendered with proper superscript/subscript sizing.
    */
 
+  import { theme, type Palette } from './theme.svelte';
+
   let {
     level,
     ionState,
@@ -24,13 +26,9 @@
 
   const FONT = 'system-ui, -apple-system, sans-serif';
 
-  // Physics colours
-  const COL_194 = { r: 129, g: 140, b: 248 }; // blue-violet #818CF8
-  const COL_282 = { r: 192, g: 132, b: 252 }; // purple #C084FC
+  // Physics colours come from the palette (`c194` blue-violet, `c282` purple),
+  // which keeps their identity across themes and only trims the lightness.
 
-  function rgba(c: typeof COL_194, a: number) {
-    return `rgba(${c.r},${c.g},${c.b},${a})`;
-  }
 
   $effect(() => {
     const obs = new ResizeObserver((entries) => {
@@ -46,12 +44,15 @@
     if (!canvas || w === 0 || h === 0) return;
     const _lev = level;
     const _ion = ionState;
+    // Reading the palette here is what makes the canvas redraw on a theme flip:
+    // it is $state underneath, so this effect depends on it.
+    const p = theme.palette;
     const dpr = window.devicePixelRatio || 1;
     canvas.width = Math.round(w * dpr);
     canvas.height = Math.round(h * dpr);
     const ctx = canvas.getContext('2d')!;
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    draw(ctx, w, h, _lev, _ion);
+    draw(ctx, w, h, _lev, _ion, p);
   });
 
   /** Draw a term symbol with proper super/subscript sizing, centred at (cx, baseY). */
@@ -101,6 +102,7 @@
     h: number,
     lev: string,
     ion: string,
+    p: Palette,
   ) {
     ctx.clearRect(0, 0, w, h);
 
@@ -127,7 +129,7 @@
 
     // ── Level lines ──
     ctx.lineCap = 'round';
-    ctx.strokeStyle = '#505862';
+    ctx.strokeStyle = p.line;
     ctx.lineWidth = lineTh;
     for (const [x, y] of [
       [pX, pY],
@@ -141,15 +143,15 @@
     }
 
     // ── Term symbol labels above lines ──
-    drawTermSymbol(ctx, pX, pY - 14, '2', 'P', '1/2', labelFs, '#B0B8C4');
-    drawTermSymbol(ctx, sX, sY - 14, '2', 'S', '1/2', labelFs, '#B0B8C4');
-    drawTermSymbol(ctx, dX, dY - 14, '2', 'D', '5/2', labelFs, '#B0B8C4');
+    drawTermSymbol(ctx, pX, pY - 14, '2', 'P', '1/2', labelFs, p.text);
+    drawTermSymbol(ctx, sX, sY - 14, '2', 'S', '1/2', labelFs, p.text);
+    drawTermSymbol(ctx, dX, dY - 14, '2', 'D', '5/2', labelFs, p.text);
 
     // ── Sublabels below lines ──
     if (!compact) {
       ctx.font = `${subFs}px ${FONT}`;
       ctx.textAlign = 'center';
-      ctx.fillStyle = '#666E7A';
+      ctx.fillStyle = p.textDim;
       ctx.fillText('excited', pX, pY + subFs + 8);
       ctx.fillText('ground', sX, sY + subFs + 8);
       ctx.fillText('metastable', dX, dY + subFs + 8);
@@ -169,7 +171,7 @@
       ctx,
       sp.x1, sp.y1,
       sp.x2, sp.y2,
-      rgba(COL_194, a194alpha),
+      p.alpha(p.c194, a194alpha),
       true,
       a194active ? arrowTh + 0.5 : arrowTh,
       headLen,
@@ -186,7 +188,7 @@
     ctx.translate(mid194x, mid194y);
     ctx.rotate(angle194);
     ctx.font = `${wlFs}px ${FONT}`;
-    ctx.fillStyle = rgba(COL_194, a194active ? 0.8 : 0.25);
+    ctx.fillStyle = p.alpha(p.c194, a194active ? 0.8 : 0.25);
     ctx.textAlign = 'center';
     ctx.fillText('194 nm', 0, -12);
     ctx.restore();
@@ -204,7 +206,7 @@
       ctx,
       sd.x1, sd.y1,
       sd.x2, sd.y2,
-      rgba(COL_282, a282alpha),
+      p.alpha(p.c282, a282alpha),
       false,
       a282active ? arrowTh + 1 : arrowTh,
       headLen,
@@ -214,7 +216,7 @@
     if (isPulsing) {
       ctx.save();
       ctx.globalAlpha = 0.12;
-      ctx.strokeStyle = rgba(COL_282, 1);
+      ctx.strokeStyle = p.c282;
       ctx.lineWidth = 14;
       ctx.lineCap = 'round';
       ctx.beginPath();
@@ -234,7 +236,7 @@
     ctx.translate(mid282x, mid282y);
     ctx.rotate(angle282);
     ctx.font = `${wlFs}px ${FONT}`;
-    ctx.fillStyle = rgba(COL_282, a282active ? 0.9 : 0.25);
+    ctx.fillStyle = p.alpha(p.c282, a282active ? 0.9 : 0.25);
     ctx.textAlign = 'center';
     ctx.fillText('282 nm', 0, -12);
     ctx.restore();
@@ -244,20 +246,22 @@
     if (lev === 'P') {
       dotX = pX;
       dotY = pY;
-      dotColor = rgba(COL_194, 1);
+      dotColor = p.c194;
     } else if (lev === 'D') {
       dotX = dX;
       dotY = dY;
-      dotColor = '#F06B8A';
+      dotColor = p.darkState;
     } else {
       dotX = sX;
       dotY = sY;
-      dotColor = rgba(COL_194, 1);
+      dotColor = p.c194;
     }
 
+    // The glow fades the dot's own colour out to transparent. It used to fade
+    // to transparent black, which would smudge the light theme.
     const glow = ctx.createRadialGradient(dotX, dotY, 0, dotX, dotY, 18);
-    glow.addColorStop(0, dotColor.replace(/[\d.]+\)$/, '0.3)'));
-    glow.addColorStop(1, 'rgba(0,0,0,0)');
+    glow.addColorStop(0, p.alpha(dotColor, 0.3));
+    glow.addColorStop(1, p.alpha(dotColor, 0));
     ctx.fillStyle = glow;
     ctx.fillRect(dotX - 22, dotY - 22, 44, 44);
 

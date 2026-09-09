@@ -8,6 +8,7 @@
     PHOTON_HIST_MAX,
     type BinData,
   } from './physics';
+  import { theme, type Palette } from './theme.svelte';
 
   let {
     binMap,
@@ -33,6 +34,7 @@
 
   const FONT = 'system-ui, -apple-system, sans-serif';
   const MONO = '"SF Mono","Cascadia Code","Fira Code","Consolas",monospace';
+
 
   function chartLayout(width: number, height: number) {
     const mobile = width < 640;
@@ -64,12 +66,15 @@
     const _sc = shotCount;
     const _dur = duration;
     const _th = showTheory;
+    // Reading the palette here is what makes the canvas redraw on a theme flip:
+    // it is $state underneath, so this effect depends on it.
+    const p = theme.palette;
     const dpr = window.devicePixelRatio || 1;
     canvas.width = Math.round(w * dpr);
     canvas.height = Math.round(h * dpr);
     const ctx = canvas.getContext('2d')!;
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    draw(ctx, w, h, binMap, photonHistogram, _sc, _dur, _th);
+    draw(ctx, w, h, binMap, photonHistogram, _sc, _dur, _th, p);
   });
 
   // ── Drag interaction ──
@@ -120,6 +125,7 @@
     totalShots: number,
     dur: number,
     theory: boolean,
+    p: Palette,
   ) {
     ctx.clearRect(0, 0, w, h);
 
@@ -139,7 +145,7 @@
     const piFs = Math.max(11, Math.min(14, w * 0.015));
 
     // ── Horizontal grid ──
-    ctx.strokeStyle = 'rgba(180,185,195,0.06)';
+    ctx.strokeStyle = p.grid;
     ctx.lineWidth = 1;
     for (const p of [0.25, 0.5, 0.75]) {
       ctx.beginPath();
@@ -150,12 +156,12 @@
 
     // ── π markers at top ──
     ctx.font = `${piFs}px ${FONT}`;
-    ctx.fillStyle = 'rgba(180,185,195,0.4)';
+    ctx.fillStyle = p.textDim;
     ctx.textAlign = 'center';
     for (let n = 1; n * T_PI <= T_MAX + 0.1; n++) {
       const xx = xS(n * T_PI);
       ctx.fillText(n === 1 ? 'π' : `${n}π`, xx, M.top - 9);
-      ctx.strokeStyle = 'rgba(180,185,195,0.07)';
+      ctx.strokeStyle = p.grid;
       ctx.lineWidth = 1;
       ctx.beginPath();
       ctx.moveTo(xx, M.top);
@@ -171,7 +177,7 @@
       ctx.save();
       ctx.beginPath();
       ctx.setLineDash([6, 5]);
-      ctx.strokeStyle = 'rgba(200,208,220,0.5)';
+      ctx.strokeStyle = p.theory;
       ctx.lineWidth = 2;
       for (let i = 0; i <= pW; i++) {
         const t = (i / pW) * T_MAX;
@@ -185,7 +191,7 @@
 
     // ── Current duration indicator (subtle dashed line, smooth) ──
     const cx = xS(dur);
-    ctx.strokeStyle = 'rgba(160,165,175,0.18)';
+    ctx.strokeStyle = p.cursor;
     ctx.lineWidth = 1;
     ctx.setLineDash([4, 3]);
     ctx.beginPath();
@@ -194,8 +200,10 @@
     ctx.stroke();
     ctx.setLineDash([]);
 
-    // Small triangle marker at bottom
-    ctx.fillStyle = 'rgba(160,165,175,0.35)';
+    // Small triangle marker at bottom. Faint rather than `cursor`: the cursor
+    // colour already has its alpha baked in, and at that weight a solid marker
+    // all but disappears — it needs to read a step stronger than its own line.
+    ctx.fillStyle = p.textFaint;
     ctx.beginPath();
     ctx.moveTo(cx, M.top + pH);
     ctx.lineTo(cx - 4, M.top + pH + 6);
@@ -216,7 +224,7 @@
         const sigma = Math.sqrt((avg * (1 - avg)) / total);
         const errTop = yS(Math.min(1, avg + sigma));
         const errBot = yS(Math.max(0, avg - sigma));
-        ctx.strokeStyle = 'rgba(200,205,215,0.35)';
+        ctx.strokeStyle = p.alpha(p.data, 0.35);
         ctx.lineWidth = 1.5;
         ctx.beginPath();
         ctx.moveTo(bx, errTop);
@@ -235,11 +243,11 @@
 
       // Data dot
       const r = Math.min(5.5, 3 + Math.sqrt(total) * 0.15);
-      ctx.fillStyle = '#C8CCD4';
+      ctx.fillStyle = p.data;
       ctx.beginPath();
       ctx.arc(bx, by, r, 0, Math.PI * 2);
       ctx.fill();
-      ctx.strokeStyle = 'rgba(200,205,215,0.45)';
+      ctx.strokeStyle = p.alpha(p.data, 0.45);
       ctx.lineWidth = 1;
       ctx.beginPath();
       ctx.arc(bx, by, r, 0, Math.PI * 2);
@@ -247,7 +255,7 @@
     });
 
     // ── Axes ──
-    ctx.strokeStyle = 'rgba(180,185,195,0.22)';
+    ctx.strokeStyle = p.line;
     ctx.lineWidth = 1.5;
     ctx.beginPath();
     ctx.moveTo(M.left, M.top);
@@ -256,12 +264,12 @@
     ctx.stroke();
 
     // X ticks + labels
-    ctx.fillStyle = '#858A94';
+    ctx.fillStyle = p.textDim;
     ctx.font = `${axFs}px ${FONT}`;
     ctx.textAlign = 'center';
     for (let xt = 0; xt <= T_MAX; xt += 5) {
       const xp = xS(xt);
-      ctx.strokeStyle = 'rgba(180,185,195,0.22)';
+      ctx.strokeStyle = p.line;
       ctx.lineWidth = 1;
       ctx.beginPath();
       ctx.moveTo(xp, M.top + pH);
@@ -272,6 +280,7 @@
 
     // X title
     ctx.font = `${titleFs}px ${FONT}`;
+    ctx.fillStyle = p.text;
     ctx.fillText(
       '282 nm pulse duration (μs)',
       M.left + pW / 2,
@@ -287,13 +296,13 @@
       [1, '1'],
     ] as [number, string][]) {
       const yp = yS(val);
-      ctx.strokeStyle = 'rgba(180,185,195,0.22)';
+      ctx.strokeStyle = p.line;
       ctx.lineWidth = 1;
       ctx.beginPath();
       ctx.moveTo(M.left - 5, yp);
       ctx.lineTo(M.left, yp);
       ctx.stroke();
-      ctx.fillStyle = '#858A94';
+      ctx.fillStyle = p.textDim;
       ctx.fillText(label, M.left - 10, yp + 5);
     }
 
@@ -303,14 +312,14 @@
     ctx.rotate(-Math.PI / 2);
     ctx.font = `${titleFs}px ${FONT}`;
     ctx.textAlign = 'center';
-    ctx.fillStyle = '#858A94';
+    ctx.fillStyle = p.text;
     ctx.fillText('Probability(dark)', 0, 0);
     ctx.restore();
 
     // ── Shot counter ──
     if (totalShots > 0) {
       ctx.font = `${Math.max(11, axFs)}px ${MONO}`;
-      ctx.fillStyle = '#5A6070';
+      ctx.fillStyle = p.textFaint;
       ctx.textAlign = 'right';
       ctx.fillText(
         `${totalShots.toLocaleString()} shots`,
@@ -328,6 +337,7 @@
         w - 16,
         M.histogramHeight,
         photonCounts,
+        p,
       );
     } else {
       drawPhotonHistogram(
@@ -337,6 +347,7 @@
         246,
         128,
         photonCounts,
+        p,
       );
     }
 
@@ -349,19 +360,20 @@
     width: number,
     height: number,
     counts: number[],
+    p: Palette,
   ) {
-    ctx.fillStyle = 'rgba(18,20,24,0.92)';
+    ctx.fillStyle = p.panel;
     fillRoundRect(ctx, x, y, width, height, 5);
-    ctx.strokeStyle = 'rgba(140,145,155,0.16)';
+    ctx.strokeStyle = p.line;
     ctx.lineWidth = 1;
     strokeRoundRect(ctx, x, y, width, height, 5);
 
     ctx.font = `12px ${FONT}`;
     ctx.textAlign = 'left';
-    ctx.fillStyle = '#A4A9B3';
+    ctx.fillStyle = p.text;
     ctx.fillText('Photon-count readout', x + 10, y + 17);
     ctx.font = `10px ${MONO}`;
-    ctx.fillStyle = '#5F6570';
+    ctx.fillStyle = p.textFaint;
     ctx.textAlign = 'right';
     ctx.fillText(`dark ≤ ${PHOTON_THRESHOLD}`, x + width - 10, y + 17);
 
@@ -372,7 +384,7 @@
     const barW = plotW / (PHOTON_HIST_MAX + 1);
     const maxCount = Math.max(1, ...counts);
 
-    ctx.strokeStyle = 'rgba(180,185,195,0.18)';
+    ctx.strokeStyle = p.line;
     ctx.beginPath();
     ctx.moveTo(plotX, plotY + plotH);
     ctx.lineTo(plotX + plotW, plotY + plotH);
@@ -383,8 +395,8 @@
       const barH = (count / maxCount) * (plotH - 4);
       ctx.fillStyle =
         i <= PHOTON_THRESHOLD
-          ? 'rgba(240,107,138,0.72)'
-          : 'rgba(129,140,248,0.72)';
+          ? p.alpha(p.darkState, 0.72)
+          : p.alpha(p.c194, 0.72);
       ctx.fillRect(
         plotX + i * barW + 0.4,
         plotY + plotH - barH,
@@ -394,7 +406,7 @@
     });
 
     const thresholdX = plotX + (PHOTON_THRESHOLD + 1) * barW;
-    ctx.strokeStyle = 'rgba(224,226,230,0.48)';
+    ctx.strokeStyle = p.alpha(p.text, 0.48);
     ctx.setLineDash([3, 2]);
     ctx.beginPath();
     ctx.moveTo(thresholdX, plotY);
@@ -403,7 +415,7 @@
     ctx.setLineDash([]);
 
     ctx.font = `9px ${MONO}`;
-    ctx.fillStyle = '#5F6570';
+    ctx.fillStyle = p.textFaint;
     ctx.textAlign = 'center';
     for (const value of [0, 10, 20, 30, 40]) {
       const tickX = plotX + (value + 0.5) * barW;

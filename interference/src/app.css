@@ -1,11 +1,129 @@
 @import "tailwindcss";
 
-/* The whole demo is a dark scene; without this the page behind it stays white
-   and the light heading text is unreadable on a projector. */
+/*
+ * Theme tokens. See demos/README.md for the contract these share with the hub
+ * and the other demos: light is the base, `prefers-color-scheme` supplies dark,
+ * and a `data-theme` attribute on <html> overrides both in either direction.
+ *
+ * Light is designed rather than inverted — the neutrals keep a slight cool bias
+ * so they read as chosen, and `--fill` keeps its meaning (maximum contrast
+ * against the page) by flipping from near-white to near-black.
+ */
+
+:root {
+  color-scheme: light;
+
+  --bg: #fafbfc;
+  --surface: #f2f4f7;
+  --panel: #ffffff;
+  --panel-2: #eceef2;
+  --panel-3: #e0e3e9;
+
+  --line: #dcdfe5;
+  --line-strong: #c2c7d0;
+
+  --text: #1a1c21;
+  --text-mid: #454a54;
+  --text-dim: #646a75;
+  --text-faint: #838a95;
+
+  --fill: #23262c;
+  --on-fill: #f7f8fa;
+
+  --focus: #40628f;
+
+  /* The optical panels depict light in a dark room, so they stay dark in both
+     themes — inverting them would be physically wrong. Only their surround
+     adapts. */
+  --scene-bg: #0c0d10;
+  --scene-line: #2a2d35;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+
+    --bg: #111215;
+    --surface: #16181c;
+    --panel: #1b1d22;
+    --panel-2: #24272e;
+    --panel-3: #2f333b;
+
+    --line: #282b33;
+    --line-strong: #3a3e48;
+
+    --text: #e0e2e6;
+    --text-mid: #b0b6c0;
+    --text-dim: #858b96;
+    --text-faint: #6b727d;
+
+    --fill: #e6e8ec;
+    --on-fill: #111215;
+
+    --focus: #8fa0bf;
+
+    --scene-bg: #0c0d10;
+    --scene-line: #282b33;
+  }
+}
+
+/* The toggle must win over the media query in both directions. */
+:root[data-theme="light"] {
+  color-scheme: light;
+
+  --bg: #fafbfc;
+  --surface: #f2f4f7;
+  --panel: #ffffff;
+  --panel-2: #eceef2;
+  --panel-3: #e0e3e9;
+
+  --line: #dcdfe5;
+  --line-strong: #c2c7d0;
+
+  --text: #1a1c21;
+  --text-mid: #454a54;
+  --text-dim: #646a75;
+  --text-faint: #838a95;
+
+  --fill: #23262c;
+  --on-fill: #f7f8fa;
+
+  --focus: #40628f;
+
+  --scene-bg: #0c0d10;
+  --scene-line: #2a2d35;
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --bg: #111215;
+  --surface: #16181c;
+  --panel: #1b1d22;
+  --panel-2: #24272e;
+  --panel-3: #2f333b;
+
+  --line: #282b33;
+  --line-strong: #3a3e48;
+
+  --text: #e0e2e6;
+  --text-mid: #b0b6c0;
+  --text-dim: #858b96;
+  --text-faint: #6b727d;
+
+  --fill: #e6e8ec;
+  --on-fill: #111215;
+
+  --focus: #8fa0bf;
+
+  --scene-bg: #0c0d10;
+  --scene-line: #282b33;
+}
+
 html,
 body {
-  background: #111215;
-  color: #e0e2e6;
+  background: var(--bg);
+  color: var(--text);
   min-height: 100%;
 }
 
@@ -20,19 +138,90 @@ body {
 }
 
 .demo-panel {
-  background: #1b1d22;
-  border: 1px solid #282b33;
+  background: var(--panel);
+  border: 1px solid var(--line);
+}
+
+/* Wrapper for a canvas that depicts the apparatus rather than plotting data. */
+.scene-panel {
+  overflow: hidden;
+  background: var(--scene-bg);
+  border: 1px solid var(--scene-line);
+  border-radius: 8px;
 }
 
 /* The scene itself is the only thing on screen allowed a hue — the beam takes
    its colour from the wavelength. Controls stay achromatic so nothing in the
    chrome reads as if it meant something physical. */
 input[type="range"] {
-  accent-color: #e6e8ec;
+  accent-color: var(--fill);
 }
 
 button:focus-visible,
 input:focus-visible {
-  outline: 2px solid #8fa0bf;
+  outline: 2px solid var(--focus);
   outline-offset: 2px;
+}
+
+/* ── Controls ── */
+/* Class names match the quantum jumps demo so the two share a vocabulary. */
+
+.btn {
+  padding: 6px 12px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s, border-color 0.12s;
+}
+
+.btn-primary {
+  background: var(--fill);
+  color: var(--on-fill);
+  border-color: var(--fill);
+}
+
+.btn-secondary {
+  background: var(--panel-2);
+  color: var(--text-mid);
+}
+
+.btn-secondary:hover {
+  background: var(--panel-3);
+  color: var(--text);
+}
+
+.section-label {
+  color: var(--text-dim);
+}
+
+.control-label {
+  color: var(--text-mid);
+}
+
+.readout {
+  color: var(--text-dim);
+}
+
+.divider {
+  background: var(--line);
+}
+
+/* ── Header controls (matched to the quantum jumps demo) ── */
+
+.icon-btn {
+  background: none;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 6px 8px;
+  cursor: pointer;
+  color: var(--text-faint);
+  flex-shrink: 0;
+  transition: color 0.12s, border-color 0.12s;
+}
+
+.icon-btn:hover {
+  color: var(--text);
+  border-color: var(--line-strong);
 }
