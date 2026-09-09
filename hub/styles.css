@@ -1,9 +1,35 @@
+/*
+ * The hub chrome is deliberately achromatic. Every demo behind it paints with
+ * physics-driven colour — the visible spectrum in Interference, the 194 nm and
+ * 282 nm violets in Quantum jumps — so any accent hue here would read as if it
+ * meant something. Selection is carried by contrast and a rule instead.
+ */
+
 :root {
   color-scheme: dark;
+
+  --bg: #111215;
+  --sidebar: #141619;
+  --panel: #1b1d22;
+  --row-hover: #191b20;
+  --row-active: #1c1f25;
+
+  --line: #282b33;
+  --line-strong: #343842;
+
+  --text: #e0e2e6;
+  --text-bright: #f0f2f5;
+  --text-idle: #b0b6c0;
+  --text-dim: #7e858f;
+  --text-faint: #656c77;
+
+  --mark: #e6e8ec;
+  --focus: #8fa0bf;
+
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
     "Segoe UI", sans-serif;
-  background: #111215;
-  color: #e0e2e6;
+  background: var(--bg);
+  color: var(--text);
   font-synthesis: none;
 }
 
@@ -17,9 +43,7 @@ body {
   height: 100%;
   margin: 0;
   overflow: hidden;
-  background:
-    radial-gradient(circle at 78% 0%, rgba(45, 212, 191, 0.07), transparent 28rem),
-    #111215;
+  background: var(--bg);
 }
 
 button,
@@ -27,45 +51,41 @@ a {
   font: inherit;
 }
 
+:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
 .hub-shell {
   display: grid;
-  grid-template-columns: 286px minmax(0, 1fr);
+  grid-template-columns: 244px minmax(0, 1fr);
   width: 100%;
   height: 100dvh;
 }
+
+/* ── Sidebar ── */
 
 .sidebar {
   display: flex;
   min-width: 0;
   flex-direction: column;
-  gap: 22px;
-  padding: 24px 18px;
-  background: rgba(22, 24, 28, 0.96);
-  border-right: 1px solid #282b33;
+  gap: 18px;
+  padding: 20px 16px;
+  background: var(--sidebar);
+  border-right: 1px solid var(--line);
 }
 
 .brand {
-  display: flex;
-  align-items: center;
-  gap: 11px;
-}
-
-.brand-mark {
-  width: 12px;
-  height: 34px;
   flex: 0 0 auto;
-  border-radius: 999px;
-  background: #2dd4bf;
-  box-shadow: 0 0 22px rgba(45, 212, 191, 0.28);
 }
 
 .eyebrow,
 .workspace-kicker {
-  margin: 0 0 2px;
-  color: #707880;
-  font-size: 0.68rem;
+  margin: 0 0 3px;
+  color: var(--text-faint);
+  font-size: 0.66rem;
   font-weight: 650;
-  letter-spacing: 0.13em;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
 }
 
@@ -77,111 +97,145 @@ p {
 
 h1 {
   margin-bottom: 0;
-  color: #f0f2f5;
-  font-size: 1.2rem;
+  color: var(--text-bright);
+  font-size: 1.12rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
   line-height: 1.2;
 }
 
-.intro,
-.sidebar-note {
-  margin-bottom: 0;
-  color: #7e8490;
-  font-size: 0.82rem;
-  line-height: 1.55;
-}
-
+/* The list is full-bleed to the sidebar edges so the active row reads as a
+   band and its rule can sit flush against the panel edge. It owns the
+   remaining height and scrolls, because this collection only grows. */
 .demo-list {
   display: flex;
+  min-height: 0;
+  flex: 1;
   flex-direction: column;
-  gap: 8px;
+  margin-inline: -16px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: var(--line-strong) transparent;
 }
 
-.demo-card {
+.demo-list::-webkit-scrollbar {
+  width: 8px;
+}
+
+.demo-list::-webkit-scrollbar-thumb {
+  background: var(--line-strong);
+  border: 2px solid var(--sidebar);
+  border-radius: 999px;
+}
+
+.demo-item {
   position: relative;
-  display: flex;
+  display: grid;
   width: 100%;
   min-width: 0;
-  flex-direction: column;
-  gap: 4px;
-  padding: 13px 14px 14px;
-  overflow: hidden;
-  color: #b7bcc5;
+  align-items: center;
+  gap: 10px;
+  grid-template-columns: minmax(0, 1fr) auto;
+  padding: 8px 16px;
+  color: inherit;
   text-align: left;
-  background: #1b1d22;
-  border: 1px solid #2b2e36;
-  border-radius: 8px;
+  background: none;
+  border: 0;
   cursor: pointer;
-  transition: border-color 120ms, background 120ms, transform 120ms;
+  transition: background 110ms, color 110ms;
 }
 
-.demo-card:hover {
-  background: #202329;
-  border-color: #3a3e48;
-  transform: translateY(-1px);
+.demo-item:focus-visible {
+  outline-offset: -2px;
 }
 
-.demo-card[aria-current="true"] {
-  color: #e8eaed;
-  background: #20272a;
-  border-color: rgba(45, 212, 191, 0.55);
+.demo-name {
+  overflow: hidden;
+  color: var(--text-idle);
+  font-size: 0.875rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transition: color 110ms;
 }
 
-.demo-card[aria-current="true"]::before {
-  position: absolute;
-  inset: 9px auto 9px 0;
-  width: 3px;
-  content: "";
-  background: #2dd4bf;
-  border-radius: 0 2px 2px 0;
-}
-
-.demo-card .lecture {
-  color: #717985;
+.demo-lecture {
+  color: var(--text-faint);
   font-size: 0.68rem;
   font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.05em;
 }
 
-.demo-card strong {
-  font-size: 0.96rem;
+.demo-item:hover {
+  background: var(--row-hover);
 }
 
-.demo-card .description {
-  color: #858b96;
-  font-size: 0.75rem;
-  line-height: 1.4;
+.demo-item:hover .demo-name {
+  color: var(--text);
 }
 
-.sidebar-note {
-  margin-top: auto;
-  color: #555c67;
-  font-size: 0.72rem;
+.demo-item[aria-current="true"] {
+  background: var(--row-active);
 }
+
+.demo-item[aria-current="true"] .demo-name {
+  color: var(--text-bright);
+  font-weight: 550;
+}
+
+.demo-item[aria-current="true"] .demo-lecture {
+  color: var(--text-dim);
+}
+
+.demo-item[aria-current="true"]::before {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 2px;
+  content: "";
+  background: var(--mark);
+}
+
+/* ── Workspace ── */
 
 .workspace {
   display: grid;
   min-width: 0;
   min-height: 0;
-  grid-template-rows: 58px minmax(0, 1fr);
-  padding: 10px;
-  gap: 8px;
+  grid-template-rows: auto minmax(0, 1fr);
+  padding: 12px;
+  gap: 10px;
 }
 
 .workspace-bar {
   display: flex;
   min-width: 0;
-  align-items: center;
+  align-items: flex-end;
   justify-content: space-between;
-  gap: 14px;
-  padding: 0 8px;
+  gap: 16px;
+  padding: 2px 4px 0;
+}
+
+.workspace-heading {
+  min-width: 0;
 }
 
 .workspace-bar h2 {
   margin: 0;
   overflow: hidden;
-  color: #e0e2e6;
+  color: var(--text);
   font-size: 1.05rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.workspace-description {
+  margin: 3px 0 0;
+  overflow: hidden;
+  color: var(--text-dim);
+  font-size: 0.8rem;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -191,37 +245,38 @@ h1 {
   flex: 0 0 auto;
   align-items: center;
   gap: 7px;
-  padding: 7px 10px;
-  color: #9da3ad;
+  padding: 7px 11px;
+  color: var(--text-dim);
   font-size: 0.78rem;
   text-decoration: none;
-  border: 1px solid #30343c;
+  border: 1px solid var(--line);
   border-radius: 6px;
   transition: color 120ms, border-color 120ms;
 }
 
 #open-demo:hover {
-  color: #d9dcdf;
-  border-color: #59606b;
+  color: var(--text);
+  border-color: var(--line-strong);
 }
 
 .demo-frame-wrap {
   min-width: 0;
   min-height: 0;
   overflow: hidden;
-  background: #111215;
-  border: 1px solid #282b33;
+  background: var(--bg);
+  border: 1px solid var(--line);
   border-radius: 10px;
-  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.2);
 }
 
 #demo-frame {
   display: block;
   width: 100%;
   height: 100%;
-  background: #111215;
+  background: var(--bg);
   border: 0;
 }
+
+/* ── Narrow: the sidebar becomes a scrolling strip above the workspace ── */
 
 @media (max-width: 700px) {
   .hub-shell {
@@ -230,56 +285,72 @@ h1 {
   }
 
   .sidebar {
-    gap: 10px;
-    padding: 11px 10px 10px;
+    gap: 9px;
+    padding: 10px 12px;
     border-right: 0;
-    border-bottom: 1px solid #282b33;
-  }
-
-  .brand-mark {
-    height: 28px;
+    border-bottom: 1px solid var(--line);
   }
 
   h1 {
-    font-size: 1rem;
-  }
-
-  .intro,
-  .sidebar-note {
-    display: none;
+    font-size: 0.98rem;
   }
 
   .demo-list {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 7px;
+    flex: 0 0 auto;
+    flex-direction: row;
+    margin-inline: -12px;
+    padding-inline: 12px;
+    gap: 6px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none;
   }
 
-  .demo-card {
-    gap: 2px;
-    padding: 8px 10px 9px;
-  }
-
-  .demo-card .description {
+  .demo-list::-webkit-scrollbar {
     display: none;
   }
 
+  .demo-item {
+    width: auto;
+    flex: 0 0 auto;
+    gap: 7px;
+    grid-template-columns: auto auto;
+    padding: 6px 11px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+  }
+
+  .demo-name {
+    font-size: 0.82rem;
+  }
+
+  .demo-item[aria-current="true"] {
+    border-color: var(--line-strong);
+  }
+
+  /* A left rule reads as an edge on a pill, so the active chip is carried by
+     its border and text weight instead. */
+  .demo-item[aria-current="true"]::before {
+    content: none;
+  }
+
   .workspace {
-    grid-template-rows: 44px minmax(0, 1fr);
-    padding: 6px;
-    gap: 5px;
+    padding: 8px;
+    gap: 7px;
   }
 
   .workspace-bar {
-    padding: 0 4px;
+    align-items: center;
+    padding: 0 2px;
   }
 
-  .workspace-kicker {
+  .workspace-kicker,
+  .workspace-description {
     display: none;
   }
 
   #open-demo {
-    padding: 6px 8px;
+    padding: 6px 9px;
   }
 }
 
@@ -288,7 +359,17 @@ h1 {
     display: none;
   }
 
-  .demo-card strong {
-    font-size: 0.86rem;
+  .demo-lecture {
+    display: none;
+  }
+
+  .demo-item {
+    grid-template-columns: auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
   }
 }

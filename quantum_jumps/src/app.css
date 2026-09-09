@@ -206,9 +206,11 @@ body {
   border: 1px solid;
 }
 
+/* Achromatic chrome: the two laser violets and the pink dark-state marker are
+   the only hues on screen, so the controls carry state by contrast alone. */
 .btn-primary {
-  background: #2dd4bf;
-  border-color: #2dd4bf;
+  background: #e6e8ec;
+  border-color: #e6e8ec;
   color: #111215;
 }
 
@@ -255,6 +257,15 @@ body {
   }
 }
 
+/* ── Focus ── */
+
+button:focus-visible,
+input:focus-visible,
+a:focus-visible {
+  outline: 2px solid #8fa0bf;
+  outline-offset: 2px;
+}
+
 /* ── Range input ── */
 
 input[type="range"] {
@@ -263,14 +274,13 @@ input[type="range"] {
   height: 6px;
   background: #24272e;
   border-radius: 3px;
-  outline: none;
 }
 input[type="range"]::-webkit-slider-thumb {
   -webkit-appearance: none;
   width: 22px;
   height: 22px;
   border-radius: 50%;
-  background: #2dd4bf;
+  background: #e6e8ec;
   border: 2px solid #111215;
   cursor: pointer;
 }
@@ -278,7 +288,7 @@ input[type="range"]::-moz-range-thumb {
   width: 22px;
   height: 22px;
   border-radius: 50%;
-  background: #2dd4bf;
+  background: #e6e8ec;
   border: 2px solid #111215;
   cursor: pointer;
 }

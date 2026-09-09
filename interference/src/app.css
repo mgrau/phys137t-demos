@@ -24,12 +24,15 @@ body {
   border: 1px solid #282b33;
 }
 
+/* The scene itself is the only thing on screen allowed a hue — the beam takes
+   its colour from the wavelength. Controls stay achromatic so nothing in the
+   chrome reads as if it meant something physical. */
 input[type="range"] {
-  accent-color: #2dd4bf;
+  accent-color: #e6e8ec;
 }
 
 button:focus-visible,
 input:focus-visible {
-  outline: 2px solid #2dd4bf;
+  outline: 2px solid #8fa0bf;
   outline-offset: 2px;
 }

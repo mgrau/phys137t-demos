@@ -205,7 +205,7 @@
           href="https://doi.org/10.1103/PhysRevLett.57.1699"
           target="_blank"
           rel="noopener"
-          style="color:#2DD4BF;text-decoration:none;"
+          style="color:#8A919B;text-decoration:none;border-bottom:1px solid #3A3E48;"
         >
           Bergquist <i>et al.</i>, PRL <b>57</b>, 1699 (1986)
         </a>
@@ -298,8 +298,8 @@
         onclick={() => (showTheory = !showTheory)}
         class="btn btn-theory"
         style="{btnBase}margin-left:auto;
-               background:{showTheory ? '#2DD4BF' : 'transparent'};
-               border-color:{showTheory ? '#2DD4BF' : '#282B33'};
+               background:{showTheory ? '#E6E8EC' : 'transparent'};
+               border-color:{showTheory ? '#E6E8EC' : '#282B33'};
                color:{showTheory ? '#111215' : '#707880'};"
       >
         sin²(Ωt/2)

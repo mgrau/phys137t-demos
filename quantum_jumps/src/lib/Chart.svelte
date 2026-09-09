@@ -163,11 +163,16 @@
       ctx.stroke();
     }
 
-    // ── Theory curve (teal accent) ──
+    // ── Theory curve ──
+    // Dashed rather than coloured: the measured points are the only thing on
+    // this plot that came from the experiment, so the model is set apart by
+    // line style instead of by hue.
     if (theory) {
+      ctx.save();
       ctx.beginPath();
-      ctx.strokeStyle = 'rgba(45,212,191,0.4)';
-      ctx.lineWidth = 2.5;
+      ctx.setLineDash([6, 5]);
+      ctx.strokeStyle = 'rgba(200,208,220,0.5)';
+      ctx.lineWidth = 2;
       for (let i = 0; i <= pW; i++) {
         const t = (i / pW) * T_MAX;
         const x = M.left + i;
@@ -175,6 +180,7 @@
         i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
       }
       ctx.stroke();
+      ctx.restore();
     }
 
     // ── Current duration indicator (subtle dashed line, smooth) ──

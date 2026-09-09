@@ -140,14 +140,14 @@
   <section class="demo-panel flex flex-wrap items-center gap-2 rounded-lg bg-neutral-900 p-3">
     <button
       class="rounded-md px-3 py-1.5 text-sm font-medium transition
-             {mode === 'wave' ? 'bg-[#2dd4bf] text-[#111215]' : 'bg-neutral-800 text-neutral-300 hover:bg-neutral-700'}"
+             {mode === 'wave' ? 'bg-[#E6E8EC] text-[#111215]' : 'bg-neutral-800 text-neutral-300 hover:bg-neutral-700'}"
       onclick={() => (mode = 'wave')}
     >
       Waves
     </button>
     <button
       class="rounded-md px-3 py-1.5 text-sm font-medium transition
-             {mode === 'particles' ? 'bg-[#2dd4bf] text-[#111215]' : 'bg-neutral-800 text-neutral-300 hover:bg-neutral-700'}"
+             {mode === 'particles' ? 'bg-[#E6E8EC] text-[#111215]' : 'bg-neutral-800 text-neutral-300 hover:bg-neutral-700'}"
       onclick={toParticles}
     >
       One Photon at a Time

@@ -11,36 +11,22 @@
     <div class="hub-shell">
       <aside class="sidebar">
         <header class="brand">
-          <div class="brand-mark" aria-hidden="true"></div>
-          <div>
-            <p class="eyebrow">PHYS 137T</p>
-            <h1>Interactive demos</h1>
-          </div>
+          <p class="eyebrow">PHYS 137T</p>
+          <h1>Interactive demos</h1>
         </header>
-        <p class="intro">
-          Explore the experiments and models used in lecture. Select a demo to
-          open it in the workspace.
-        </p>
-        <nav class="demo-list" aria-label="Available demonstrations">
-          <button class="demo-card" type="button" data-demo="interference">
-            <span class="lecture">Lecture 4</span>
-            <strong>Interference</strong>
-            <span class="description">Waves and photons through one or two slits</span>
-          </button>
-          <button class="demo-card" type="button" data-demo="quantum_jumps">
-            <span class="lecture">Lecture 5</span>
-            <strong>Quantum jumps</strong>
-            <span class="description">Single-ion readout and Rabi oscillations</span>
-          </button>
-        </nav>
-        <p class="sidebar-note">More demonstrations will appear here as the course develops.</p>
+        <nav
+          class="demo-list"
+          id="demo-list"
+          aria-label="Available demonstrations"
+        ></nav>
       </aside>
 
       <main class="workspace">
         <header class="workspace-bar">
-          <div>
-            <span class="workspace-kicker" id="active-lecture">Lecture 4</span>
-            <h2 id="active-title">Interference</h2>
+          <div class="workspace-heading">
+            <span class="workspace-kicker" id="active-lecture"></span>
+            <h2 id="active-title"></h2>
+            <p class="workspace-description" id="active-description"></p>
           </div>
           <a id="open-demo" href="./interference/" target="_blank" rel="noopener">
             Open demo
@@ -48,12 +34,7 @@
           </a>
         </header>
         <div class="demo-frame-wrap">
-          <iframe
-            id="demo-frame"
-            src="./interference/"
-            title="Interference interactive demonstration"
-            allow="fullscreen"
-          ></iframe>
+          <iframe id="demo-frame" title="Interactive demonstration" allow="fullscreen"></iframe>
         </div>
       </main>
     </div>
