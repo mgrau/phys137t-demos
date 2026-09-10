@@ -1,6 +1,7 @@
 # PHYS 137T interactive demos
 
-This directory is the source for the shared public demo collection:
+This repository lives at `~/projects/phys137t-demos`, outside the OneDrive-synced
+course folder. It is the source for the shared public demo collection:
 
 - Hub: <https://mgrau.github.io/phys137t-demos/>
 - Interference: <https://mgrau.github.io/phys137t-demos/interference/>
@@ -10,6 +11,8 @@ This directory is the source for the shared public demo collection:
 
 Each demo remains an independent Svelte app. The root build compiles them into
 separate static subfolders and adds the responsive selector at the site root.
+On phones, the header's menu button opens the demo list; theme and standalone
+demo controls are in that menu too.
 
 ```sh
 npm run check
@@ -57,6 +60,11 @@ slot per qubit, rather than as free-form source. That is what lets every shape
 be available at once: dropping a square sets *the square*, whatever else is
 filled. The palette offers each register shape in white and black, so there is
 no colour-cycling step needed to place one.
+
+**Show me how** opens the derivation, scrolls it into place, then starts playback.
+The step buttons and Pause remain available to work at your own pace. On small
+screens the working table uses compact headings and outcome colours in measured
+wire order, with the full outcome description available on hover.
 
 Dropping a shape whose slot is already taken **starts another possibility** —
 which is how a student says "and another term, differing here", and repeats are

@@ -208,7 +208,7 @@
         <th scope="col"><span class="wide-label">Terms it collects</span><span class="compact-label">Terms</span></th>
         <th scope="col"><span class="wide-label">State afterwards</span><span class="compact-label">State after</span></th>
         <th scope="col" class="n"><span class="wide-label">Amplitude</span><abbr class="compact-label" title="Amplitude">Amp.</abbr></th>
-        <th scope="col" class="n">Squared</th>
+        <th scope="col" class="n"><span class="wide-label">Squared</span><abbr class="compact-label" title="Squared amplitude">Amp.²</abbr></th>
         <th scope="col" class="n"><span class="wide-label">Probability</span><abbr class="compact-label" title="Probability">Prob.</abbr></th>
       </tr>
     </thead>
@@ -507,14 +507,15 @@
     .nav { margin-left: auto; }
     .count { white-space: nowrap; }
     .tally { table-layout: fixed; }
-    .outcome-col { width: 16%; }
-    .terms-col, .state-col { width: 22%; }
-    .amp-col { width: 10%; }
+    .outcome-col { width: 18%; }
+    .terms-col, .state-col { width: 20%; }
+    .amp-col { width: 13%; }
     .squared-col { width: 14%; }
-    .prob-col { width: 16%; }
-    .tally th { padding: 0 3px 5px; font-size: 0.6rem; }
-    .tally td { padding: 6px 3px; font-size: 0.7rem; }
+    .prob-col { width: 15%; }
+    .tally th { padding: 0 2px 5px; font-size: 0.6rem; }
+    .tally td { padding: 6px 2px; font-size: 0.7rem; }
     .tally th.n, .tally td.n { white-space: normal; overflow-wrap: anywhere; }
+    .tally th.n { white-space: nowrap; }
     .wide-label, .keyfig, .reads { display: none; }
     .compact-label { display: inline; }
     .outcome { display: block; font-size: 0.68rem; overflow-wrap: anywhere; }

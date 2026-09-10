@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 /*
- * Theme tokens. See demos/README.md for the contract these share across the hub
+ * Theme tokens. See the root README.md for the contract these share across the hub
  * and every demo: light is the base, `prefers-color-scheme` supplies dark, and a
  * `data-theme` attribute on <html> overrides both in either direction.
  *

@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 /*
- * Theme tokens. See demos/README.md for the contract these share across the hub
+ * Theme tokens. See the root README.md for the contract these share across the hub
  * and every demo: light is the base, `prefers-color-scheme` supplies dark, and a
  * `data-theme` attribute on <html> overrides both in either direction.
  *
@@ -372,6 +372,12 @@ body {
   }
   .button-row { gap: 4px; flex-wrap: nowrap; }
   .btn-theory { padding-inline: 4px; font-size: 0.65rem; }
+}
+
+@media (max-width: 360px) {
+  .button-row { gap: 3px; }
+  .btn { padding-inline: 3px; font-size: 0.65rem; }
+  .btn-theory { font-size: 0.6rem; }
 }
 
 /* ── Keyboard hints (hidden on touch) ── */

@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 /*
- * Theme tokens. See demos/README.md for the contract these share across the hub
+ * Theme tokens. See the root README.md for the contract these share across the hub
  * and every demo: light is the base, `prefers-color-scheme` supplies dark, and a
  * `data-theme` attribute on <html> overrides both in either direction.
  *
@@ -360,7 +360,7 @@ tfoot td.bad strong { color: var(--bad); }
 /* A little air above it when scrolled to, rather than flush to the edge. */
 .work { scroll-margin-top: 10px; }
 
-.scroll-room { flex: 0 0 auto; height: 60vh; }
+.scroll-room { flex: 0 0 auto; height: calc(100dvh - 20px); }
 
 .moral { margin: 12px 0 0; font-size: 0.85rem; line-height: 1.6; color: var(--text-mid); }
 
