@@ -62,6 +62,31 @@ function terms(bits: string[], allowMinus: boolean): string {
 const SHAPES2 = 'shape os';
 const SHAPES3 = 'shape o^s';
 
+/**
+ * Some of the wires, never all of them.
+ *
+ * A partial measurement that read every qubit would just be a joint one, and
+ * that is a different category. Which wires get read is varied because always
+ * measuring the last one teaches the position rather than the idea — a student
+ * should have to look at the circuit to see what is being measured.
+ */
+function someWires(n: number): number[] {
+  for (;;) {
+    const picked: number[] = [];
+    for (let i = 1; i <= n; i++) if (Math.random() < 0.5) picked.push(i);
+    if (picked.length && picked.length < n) return picked;
+  }
+}
+
+/** One layer: measure the chosen wires, pass the rest straight through. */
+function measureLayer(n: number, measured: number[]): string {
+  const parts: string[] = [];
+  for (let i = 1; i <= n; i++) {
+    parts.push(measured.includes(i) ? `measure ${i} Z` : `I ${i}`);
+  }
+  return parts.join('; ');
+}
+
 function candidate(category: CategoryId): string {
   if (category === 'single') {
     const whites = 1 + upto(3);
@@ -93,7 +118,7 @@ function candidate(category: CategoryId): string {
       const b = pick(all);
       if (!chosen.includes(b)) chosen.push(b);
     }
-    return `${SHAPES3}\nin ${terms(chosen, true)}\nI 1; I 2; measure 3 Z`;
+    return `${SHAPES3}\nin ${terms(chosen, true)}\n${measureLayer(3, someWires(3))}`;
   }
   const all = ['00', '01', '10', '11'];
   const chosen: string[] = [];
@@ -101,7 +126,7 @@ function candidate(category: CategoryId): string {
     const b = pick(all);
     if (!chosen.includes(b)) chosen.push(b);
   }
-  return `${SHAPES2}\nin ${terms(chosen, true)}\nI 1; measure 2 Z`;
+  return `${SHAPES2}\nin ${terms(chosen, true)}\n${measureLayer(2, someWires(2))}`;
 }
 
 /** Is this worth putting in front of a student? */
@@ -127,10 +152,10 @@ export function randomQuestion(category: CategoryId): Question {
         category,
         prompt:
           category === 'single'
-            ? 'A fresh one. Count the copies.'
+            ? 'Suddenly a wild superposition state appears!'
             : category === 'joint'
-              ? 'A fresh one. Every qubit is measured.'
-              : 'A fresh one. Only the last qubit is measured.',
+              ? 'A random multiple qubit measurement problem.'
+              : 'A random measurement problem.',
         source,
         // Amplitudes stay whole numbers only while everything is measured; a
         // partial outcome that keeps two terms has amplitude √2.

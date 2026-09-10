@@ -73,9 +73,8 @@ export const QUESTIONS: Question[] = [
     amplitude: true,
     moral:
       'There is one copy of each, so both amplitudes are 1 and both outcomes ' +
-      'are equally likely. This is the only case where counting copies and ' +
-      'counting probability give you the same answer, which is exactly why ' +
-      'the next question is worth doing.',
+      'are equally likely. This is the one case where counting copies and ' +
+      'counting probability happen to give the same answer.',
   },
   {
     id: 'single-three',
