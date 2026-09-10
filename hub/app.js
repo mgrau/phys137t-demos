@@ -16,6 +16,12 @@ const DEMOS = [
     lecture: 5,
     description: 'Single-ion readout and Rabi oscillations',
   },
+  {
+    slug: 'measurement_quiz',
+    title: 'Measurement quiz',
+    lecture: 7,
+    description: 'Fill in the outcomes of a measurement, and their probabilities',
+  },
 ];
 
 const list = document.querySelector('#demo-list');

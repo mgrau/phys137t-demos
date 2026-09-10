@@ -201,7 +201,7 @@
 <main
   bind:this={mainEl}
   class="app-root"
-  style:padding={isFullscreen ? '20px 24px' : '10px 12px'}
+  style:padding={isFullscreen ? 'var(--shell-pad-fs)' : 'var(--shell-pad)'}
 >
   <!-- Header -->
   <header class="app-header">

@@ -134,7 +134,7 @@
 
 <main
   bind:this={mainEl}
-  class="demo-shell p-3 sm:p-4"
+  class="demo-shell {isFullscreen ? 'fullscreen' : ''}"
   style="color: var(--text)"
 >
   <header class="flex items-start justify-between gap-3">
@@ -187,8 +187,8 @@
     </div>
   </header>
 
-  <section class="scene-row grid gap-3 md:grid-cols-[1fr_2fr]">
-    <div class="scene-col flex flex-col gap-1.5">
+  <section class="scene-row grid md:grid-cols-[1fr_2fr]">
+    <div class="scene-col space-y-1.5">
       <h2 class="section-label text-xs font-medium uppercase tracking-wide">
         {slits === 2 ? 'Two slits' : 'One slit'}
       </h2>
@@ -213,7 +213,7 @@
       {/if}
     </div>
 
-    <div class="scene-col flex flex-col gap-1.5">
+    <div class="scene-col space-y-1.5">
       <h2 class="section-label text-xs font-medium uppercase tracking-wide">
         The screen
         {#if mode === 'particles'}
@@ -229,7 +229,7 @@
     </div>
   </section>
 
-  <section class="demo-panel flex flex-shrink-0 flex-wrap items-center gap-2 rounded-lg p-3">
+  <section class="demo-panel flex flex-shrink-0 flex-wrap items-center gap-2">
     <button
       class="btn {mode === 'wave' ? 'btn-primary' : 'btn-secondary'}"
       onclick={() => (mode = 'wave')}
@@ -272,7 +272,7 @@
     </button>
   </section>
 
-  <section class="demo-panel grid flex-shrink-0 gap-x-5 gap-y-3 rounded-lg p-3 sm:grid-cols-2 lg:grid-cols-4">
+  <section class="demo-panel grid flex-shrink-0 gap-x-5 gap-y-3 sm:grid-cols-2 lg:grid-cols-4">
     <label class="space-y-1 text-sm">
       <span class="control-label">Wavelength</span>
       <input type="range" min="380" max="750" step="1" bind:value={wavelengthNm} class="w-full" />

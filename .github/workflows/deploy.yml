@@ -29,8 +29,10 @@ jobs:
           cache-dependency-path: |
             interference/package-lock.json
             quantum_jumps/package-lock.json
+            measurement_quiz/package-lock.json
       - run: npm ci --prefix interference
       - run: npm ci --prefix quantum_jumps
+      - run: npm ci --prefix measurement_quiz
       - run: npm run check
       - run: npm run build
       - uses: actions/configure-pages@v5

@@ -137,6 +137,24 @@
   --scene-line: #262b33;
 }
 
+/*
+ * Layout tokens — shared, and the reason is that they drifted once already.
+ * Interference kept its spacing in Tailwind utilities while quantum jumps kept
+ * it in CSS, so the two ended up with different shell padding, band gap and
+ * panel padding despite being the same kind of surface. Every demo reads these
+ * now; do not reintroduce a `p-3` for a shell or a panel.
+ */
+:root {
+  /* Outer frame of the demo. Tight, because these are shown on a projector. */
+  --shell-pad: 10px 12px;
+  --shell-pad-fs: 20px 24px;
+  /* Between the stacked bands: figure, controls, sliders. */
+  --band-gap: 8px;
+  /* Inside a panel. */
+  --panel-pad: 9px 12px;
+  --radius: 8px;
+}
+
 html,
 body {
   background: var(--bg);
@@ -150,42 +168,42 @@ body {
     "Segoe UI", sans-serif;
 }
 
-/* Fill the viewport, like the quantum jumps demo: the scene row takes whatever
-   height is left over once the header and the two control bars have theirs.
-   Below the breakpoint it reverts to ordinary document flow and scrolls, since
-   cramming four panels into a phone's height helps nobody. */
+/*
+ * Full width, stacked tight from the top.
+ *
+ * Both canvases carry a fixed intrinsic aspect and no resize observer, so at
+ * any usable window they are width-bound: they are already as large as the
+ * column allows and there is height left over no matter what. Two earlier
+ * attempts spent that height badly — stretching the panels turned it into
+ * black bars inside them, and centring the row split it above and below and
+ * pushed the controls away from the thing they control.
+ *
+ * So it is not spent at all. Every band takes its natural height and the
+ * leftover falls past the last one, which puts the mode buttons and the
+ * sliders directly under the screen where they belong.
+ */
 .demo-shell {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: var(--band-gap);
   width: 100%;
   min-height: 100dvh;
+  padding: var(--shell-pad);
 }
 
-@media (min-width: 768px) {
-  .demo-shell {
-    height: 100dvh;
-    min-height: 0;
-    overflow: hidden;
-  }
-  .scene-row {
-    flex: 1;
-    min-height: 0;
-  }
-  /* Both canvases have a fixed intrinsic aspect and no resize observer, so at
-     any usable window they are width-bound and there is height left over.
-     Stretching the panels only converts that into black bars inside them, so
-     instead the panels hug their canvas and the leftover is split evenly above
-     and below. Balanced, rather than a void under the last panel. */
-  .scene-col {
-    min-height: 0;
-    justify-content: center;
-  }
+.demo-shell.fullscreen {
+  padding: var(--shell-pad-fs);
+}
+
+.scene-row {
+  gap: var(--band-gap);
 }
 
 .demo-panel {
+  padding: var(--panel-pad);
   background: var(--panel);
   border: 1px solid var(--line);
+  border-radius: var(--radius);
 }
 
 /* A canvas depicting the apparatus rather than plotting data. */
@@ -195,7 +213,7 @@ body {
   overflow: hidden;
   background: var(--scene-bg);
   border: 1px solid var(--scene-line);
-  border-radius: 8px;
+  border-radius: var(--radius);
 }
 
 /* Both scene canvases carry a fixed intrinsic width/height and have no resize

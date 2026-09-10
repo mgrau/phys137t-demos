@@ -5,6 +5,7 @@ This directory is the source for the shared public demo collection:
 - Hub: <https://mgrau.github.io/phys137t-demos/>
 - Interference: <https://mgrau.github.io/phys137t-demos/interference/>
 - Quantum jumps: <https://mgrau.github.io/phys137t-demos/quantum_jumps/>
+- Measurement quiz: <https://mgrau.github.io/phys137t-demos/measurement_quiz/>
 
 Each demo remains an independent Svelte app. The root build compiles them into
 separate static subfolders and adds the responsive selector at the site root.
@@ -22,48 +23,90 @@ list renders from, and its build output in `scripts/build.sh`.
 
 ## Planned
 
-Five more, in the order the lectures need them. Dates are the class meeting the
-demo is for.
+Four more, in the order the lectures need them. Dates are the class meeting the
+demo is for. (The measurement quiz is built — see below.)
 
 | Demo | Lecture | Date |
 | --- | --- | --- |
-| Measurement quiz — a state, answer the outcome, then a walk-through of how to get there | 6 / 7 / 11, Measurement and post-measurement | Sep 10 / 15 / 29 |
 | Money or tiger — query the oracle and spend your queries | 8, Interference and Deutsch–Jozsa | Sep 17 |
 | Quantum Zeno — watch a rotation freeze as you measure it more often | 13, The Quantum Zeno Effect | Oct 8 |
 | BB84 — run the protocol, toggle Eve, tell her apart from channel noise | 18, Quantum cryptography | Oct 29 |
 | Grover — amplitudes reflected about their average, with N and iteration count as knobs | 20 / 21, Algorithms and Grover | Nov 17 / 19 |
 
-### Measurement quiz — spec
+### Measurement quiz — built
 
-Built on `misty_states` for the notation and simulation, borrowing the drag
-interface from `quantum_sketch`.
+Nine questions in three categories: one qubit measured, several measured, and
+partial measurement. The categories are not decoration — they are what makes
+the **amplitude** column workable. Counting copies gives whole-number
+amplitudes when everything is measured (3 and 1, or 1 and 2 and 1), but an
+outcome that keeps two terms has amplitude √2, so the column is off for partial
+measurements via `amplitude: false` on the question. Turn it on for one of those
+only if you want that conversation.
 
-Each question presents a state of **1 or 2 qubits** — 3 is undecided, and worth
-deciding by counting how many rows the outcome table needs before it stops
-fitting on a phone — with measurement gates on one or more of them, and an
-empty outcome table.
+**The answer key is never written down.** A question is only its circuit source;
+the outcomes come from `simulateBranches`. So a question cannot disagree with
+its own answer, and varying the inputs year to year is a one-line edit.
 
-The student fills the table in:
+Amplitudes are computed from the state *just before* the measurement, not from
+a branch's `odds` — misty has already reduced those, so measuring the square of
+`00|01|01|10` reports 1/3 and 2/3, and reconstructing amplitudes from that
+gives √1 and √2 against 3 rather than the true √2 and 2 against 6.
 
-- **Drag qubits into a row** to build an outcome, then **click or tap** a qubit
-  to cycle its state. Same gesture vocabulary as `quantum_sketch`, so anyone who
-  has used the sketch pad already knows how to drive this.
-- **Type the probability** for each row.
+**Interaction.** A cell is held as **terms by slots** (`src/lib/cell.ts`), one
+slot per qubit, rather than as free-form source. That is what lets every shape
+be available at once: dropping a square sets *the square*, whatever else is
+filled. The palette offers each register shape in white and black, so there is
+no colour-cycling step needed to place one.
 
-Marking:
+Dropping a shape whose slot is already taken **starts another possibility** —
+which is how a student says "and another term, differing here", and repeats are
+what carry amplitude in this notation.
 
-- A probability counts as correct within **1%**.
-- The column must **sum to 100%**, checked separately from the individual rows —
-  a student can have every row within tolerance and still not have a
-  distribution, and that is worth saying out loud rather than silently passing.
-- Rows must be the *right set* of outcomes, not just plausible ones. Use
-  `canonical()` from the misty kernel to compare, so an outcome written in a
-  different but equivalent form still matches.
+The cloud is a **factor**, not the outer container of every term. Dropping it
+into an empty cell gives a cloud with a blank in it and *nothing beside it* —
+it is `'open'`, covering no slot, until the first qubit dropped inside decides
+which one it holds. Trailing blanks are trimmed for the same reason: a blank
+with something after it has to stay, because position is what names a qubit,
+but a run of them at the end says nothing. Qubits drag into the cloud, and
+dragging one back out leaves it standing *beside* it. That is misty's
+`0(0|1)` and it is the factored form the notes ask for, so `(0|1)0` and `00|10`
+are both accepted for the same outcome — `canonical()` sees through the
+difference. The cloud has to be a contiguous run of slots, because the notation
+has no way to write a split one; a slot leaving from the middle collapses the
+cloud rather than pretending otherwise.
 
-Then it **walks through how to get there** — the part the Lecture 7 notes ask
-for and do not have. The recipe from the deck, one step at a time: write the
-whole cloud out, split into branches, square the amplitudes, and read off what
-is left. This is the reason the demo exists; the marking is secondary.
+Each category has three fixed examples plus a **Random** button
+(`src/lib/generate.ts`). Generated questions are simulated before being shown
+and rejected if they are not worth answering — more than four outcomes is
+bookkeeping, and anything under 5% is guessable.
+
+Minus signs are decided **per distinct possibility**, not per term, and about a
+third of draws carry two or more. Signing terms individually let a possibility's
+own copies cancel: `-0|0|-0|1` writes three white terms that net to −1, so a
+student counting copies gets 3 and is wrong. That is a question about
+*simplifying* a state — a different one of the six rules — smuggled into a
+question about measuring one, so every state is presented already simplified.
+Repeats of the *same* sign stay, because counting copies is exactly the skill
+being drilled. Never every possibility, since an overall sign is a global phase
+that `canonical` divides straight back out. 600 draws were checked for
+malformed output and for self-cancelling possibilities; none of either.
+
+A **minus** tile makes a term's amplitude negative. It has to be dropped on a
+qubit, because a qubit is the only thing that identifies which term is meant,
+and it only counts *inside* a cloud — a minus on a lone term or on a whole
+factored product is a global phase that `canonical` divides straight back out,
+so `01` and `-01` are the same state. Without this, an outcome like `011|-101`
+was unwritable, which made one of the fixed questions unsolvable.
+
+Tapping a placed qubit cycles it white → black → blank. Blocks drag out of the
+table to delete and between cells to move, and tapping works everywhere drag
+does, for phones. Rows are added with a green `+` and deleted with a red `×`.
+
+Drop targets are resolved with `document.elementFromPoint` against the cell
+elements, deliberately coarser than `quantum_sketch`'s drag layer: that one aims
+at a position *within* one figure, which needs a synthesised hit-box for the `|`
+bars that misty does not publish. Here what matters is which cell a block lands
+in, and appending within a cell is what a student wants anyway.
 
 **Build these on misty_states as the design language.** The course teaches
 qubits in Terry Rudolph's shape-and-shade notation, so a demo that invents its
@@ -102,12 +145,37 @@ Where two things on one plot need telling apart, separate them by *form*, not
 hue. The Rabi theory curve is dashed rather than coloured, so the measured
 points stay the only thing on the plot that came from the experiment.
 
+## Spacing
+
+Shell padding, the gap between bands, panel padding and the corner radius are
+**layout tokens**, declared alongside the colour tokens in every demo's
+`app.css` and read from there:
+
+    --shell-pad     10px 12px      --band-gap   8px
+    --shell-pad-fs  20px 24px      --panel-pad  9px 12px
+    --radius        8px
+
+They are tokens because they drifted once. Interference kept its spacing in
+Tailwind utilities (`p-3 sm:p-4`, `gap-3`) while Quantum jumps kept it in CSS,
+so the two ended up with different shell padding, band gap and panel padding
+despite being the same kind of surface. Do not put a `p-3` on a shell or a
+panel; point it at the token instead.
+
 ## Light and dark
 
 Both themes are supported everywhere, with a toggle in the header next to
 fullscreen (`D`, or the button). Light is **designed rather than inverted** —
 the neutrals keep a slight cool bias, and `--fill` holds its meaning (maximum
 contrast against the page) by flipping from near-white to near-black.
+
+**The notation never flips.** In this course a qubit's white or black fill *is*
+its value, and misty's dark palette swaps them — a white qubit comes back
+near-black. That would show a student the wrong bit, so the quiz's figures keep
+misty's light palette in both themes and sit on `--paper`, the way a printed
+figure sits on a page. Paper itself does adapt: white in the light theme, grey
+in the dark one, since a sheet of pure white glares against a dark page. It
+stays light-valued because a white qubit still has to read as white on it. This is the same rule as the cases below, just
+sharper: the ink carries meaning, so it is not available to the theme.
 
 **Not everything flips.** Interference's wave field and screen stay dark in
 both themes: they are images of light in a dark room, and inverting a fringe
