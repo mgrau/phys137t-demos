@@ -313,10 +313,13 @@
     ctx.font = `${titleFs}px ${FONT}`;
     ctx.textAlign = 'center';
     ctx.fillStyle = p.text;
-    ctx.fillText('Probability(dark)', 0, 0);
+    ctx.fillText('Probability (dark)', 0, 0);
     ctx.restore();
 
     // ── Shot counter ──
+    // Below the axis rather than above it: the top row belongs to the π
+    // markers, and the last of those sits exactly where a right-aligned
+    // counter wants to be.
     if (totalShots > 0) {
       ctx.font = `${Math.max(11, axFs)}px ${MONO}`;
       ctx.fillStyle = p.textFaint;
@@ -324,7 +327,7 @@
       ctx.fillText(
         `${totalShots.toLocaleString()} shots`,
         M.left + pW,
-        M.top - 9,
+        M.top + pH + 42,
       );
     }
 

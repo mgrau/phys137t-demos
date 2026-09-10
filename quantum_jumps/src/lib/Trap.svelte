@@ -84,14 +84,6 @@
       ctx.translate(-cx, -cy);
     }
 
-    function trapPoint(x: number, y: number) {
-      const dx = x - cx;
-      const dy = y - cy;
-      return {
-        x: cx + dx * Math.cos(tilt) - dy * Math.sin(tilt),
-        y: cy + dx * Math.sin(tilt) + dy * Math.cos(tilt),
-      };
-    }
 
     // Ring (torus) geometry
     const ringOuterR = sc * 0.9;
@@ -268,33 +260,33 @@
     ctx.restore();
 
     // ── 7. Labels ──
+    //
+    // Placed in *screen* space, one to a corner, rather than beside the part
+    // they name. The trap is drawn rotated a quarter turn, so anchors computed
+    // in trap space get rotated too and two of them used to land on top of each
+    // other in the lower left. Corners cannot collide, and at this size the
+    // drawing is small enough that a label in the corner still reads as
+    // belonging to the thing pointing at it.
+    //
+    // Both endcaps carry the same name, so they are named once, plural. Two
+    // labels instead of three leaves the bottom row to the status line and the
+    // ion, and nothing has to be squeezed.
     const fs = Math.max(12, Math.min(15, sc * 0.11));
+    const pad = 8;
     ctx.font = `${fs}px ${FONT}`;
     ctx.fillStyle = p.trap.label;
-    ctx.textAlign = 'center';
-    const ringLabel = trapPoint(
-      cx + ringOuterR * 0.72,
-      cy + ringOuterR * persp + fs + 4,
-    );
-    const upperCapLabel = trapPoint(
-      cx,
-      cy - capDist - capH / 2 - capRX * capPersp - 5,
-    );
-    const lowerCapLabel = trapPoint(
-      cx,
-      cy + capDist + capH / 2 + capRX * capPersp + fs + 2,
-    );
+
     if (!compact) {
-      drawClampedLabel('ring RF electrode', ringLabel.x, ringLabel.y);
-      drawClampedLabel('endcap DC electrode', upperCapLabel.x, upperCapLabel.y);
-      drawClampedLabel('endcap DC electrode', lowerCapLabel.x, lowerCapLabel.y);
+      ctx.textAlign = 'left';
+      ctx.fillText('ring RF electrode', pad, fs + 2);
+      ctx.textAlign = 'right';
+      ctx.fillText('endcap DC electrodes', w - pad, fs + 2);
     }
 
-    // Ion label
-    ctx.fillStyle = p.trap.label;
-    ctx.font = `${fs}px ${FONT}`;
+    // The ion sits inside the trap, so its label cannot go beside it without
+    // landing on the electrode body. Bottom right, clear of the status line.
     ctx.textAlign = 'right';
-    ctx.fillText('Hg⁺', cx - ionR * 1.15, cy + fs * 0.35);
+    ctx.fillText('Hg⁺', w - pad, h - pad);
 
     // Status
     const statusFs = Math.max(13, Math.min(16, sc * 0.12));
@@ -311,11 +303,6 @@
       ctx.fillText('DARK', cx, h - 8);
     }
 
-    function drawClampedLabel(text: string, x: number, y: number) {
-      const halfWidth = ctx.measureText(text).width / 2;
-      const safeX = Math.max(halfWidth + 8, Math.min(w - halfWidth - 8, x));
-      ctx.fillText(text, safeX, y);
-    }
   }
 
   function drawCylinder(
