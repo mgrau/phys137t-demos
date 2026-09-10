@@ -25,15 +25,31 @@
     <div class="hub-shell">
       <aside class="sidebar">
         <header class="brand">
-          <p class="eyebrow">PHYS 137T</p>
-          <h1>Interactive demos</h1>
+          <button id="menu-toggle" type="button" class="icon-btn menu-toggle"
+            aria-label="Choose a demo" aria-expanded="false" aria-controls="demo-menu">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor"
+              stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16" /></svg>
+          </button>
+          <div class="brand-text">
+            <p class="eyebrow">PHYS 137T</p>
+            <h1>Interactive demos</h1>
+          </div>
+          <h1 class="mobile-brand">PHYS137T Interactive Demos</h1>
         </header>
-        <nav
-          class="demo-list"
-          id="demo-list"
-          aria-label="Available demonstrations"
-        ></nav>
+        <div class="demo-menu" id="demo-menu">
+          <nav
+            class="demo-list"
+            id="demo-list"
+            aria-label="Available demonstrations"
+          ></nav>
+          <div class="mobile-actions">
+            <button type="button" class="icon-btn theme-toggle"></button>
+            <a class="open-demo" href="./interference/" target="_blank" rel="noopener">Open demo <span aria-hidden="true">↗</span></a>
+          </div>
+        </div>
       </aside>
+      <button id="menu-backdrop" type="button" class="menu-backdrop" hidden
+        tabindex="-1" aria-label="Close demo menu"></button>
 
       <main class="workspace">
         <header class="workspace-bar">
@@ -43,8 +59,8 @@
             <p class="workspace-description" id="active-description"></p>
           </div>
           <div class="workspace-actions">
-            <button id="theme-toggle" type="button" class="icon-btn"></button>
-            <a id="open-demo" href="./interference/" target="_blank" rel="noopener">
+            <button id="theme-toggle" type="button" class="icon-btn theme-toggle"></button>
+            <a id="open-demo" class="open-demo" href="./interference/" target="_blank" rel="noopener">
               Open demo
               <span aria-hidden="true">↗</span>
             </a>

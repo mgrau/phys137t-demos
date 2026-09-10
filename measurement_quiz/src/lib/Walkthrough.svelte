@@ -29,6 +29,11 @@
   let at = $state(-1);
   let playing = $state(false);
 
+  /** Called by the parent once the opened panel has scrolled into place. */
+  export function play() {
+    playing = true;
+  }
+
   // A new question restarts the derivation rather than leaving it mid-way
   // through a state that is no longer on screen.
   $effect(() => {
@@ -99,7 +104,7 @@
   const narration = $derived.by(() => {
     if (!walk) return '';
     if (!step) {
-      return `${walk.terms.length} terms to sort into ${walk.buckets.length} outcome${walk.buckets.length === 1 ? '' : 's'}. Press play to work through it.`;
+      return `${walk.terms.length} terms to sort into ${walk.buckets.length} outcome${walk.buckets.length === 1 ? '' : 's'}.${playing ? '' : ' Press play to work through it.'}`;
     }
     if (step.kind === 'sort') {
       const t = walk.terms[step.term];
@@ -193,14 +198,18 @@
   </div>
 
   <table class="tally">
+    <colgroup>
+      <col class="outcome-col" /><col class="terms-col" /><col class="state-col" />
+      <col class="amp-col" /><col class="squared-col" /><col class="prob-col" />
+    </colgroup>
     <thead>
       <tr>
         <th scope="col">Outcome</th>
-        <th scope="col">Terms it collects</th>
-        <th scope="col">State afterwards</th>
-        <th scope="col" class="n">Amplitude</th>
+        <th scope="col"><span class="wide-label">Terms it collects</span><span class="compact-label">Terms</span></th>
+        <th scope="col"><span class="wide-label">State afterwards</span><span class="compact-label">State after</span></th>
+        <th scope="col" class="n"><span class="wide-label">Amplitude</span><abbr class="compact-label" title="Amplitude">Amp.</abbr></th>
         <th scope="col" class="n">Squared</th>
-        <th scope="col" class="n">Probability</th>
+        <th scope="col" class="n"><span class="wide-label">Probability</span><abbr class="compact-label" title="Probability">Prob.</abbr></th>
       </tr>
     </thead>
     <tbody>
@@ -218,6 +227,7 @@
                           ariaLabel={readsAs(bucket.key, walk.wires, shapes)} />
                 </span>
                 <span class="reads">{readsAs(bucket.key, walk.wires, shapes)}</span>
+                <span class="compact-label" title={readsAs(bucket.key, walk.wires, shapes)}>{[...bucket.key].map((bit) => bit === '1' ? 'black' : 'white').join(', ')}</span>
               </span>
             {:else}
               <span class="waiting">—</span>
@@ -372,6 +382,8 @@
   .figbox {
     position: relative;
     display: inline-block;
+    min-width: 0;
+    max-width: 100%;
   }
   /* The box around the term being sorted. Accent, because this is the
      interface pointing at something, not part of the notation. */
@@ -402,6 +414,10 @@
     width: 100%;
     margin-top: 11px;
     border-collapse: collapse;
+  }
+  .compact-label {
+    display: none;
+    text-decoration: none;
   }
   .tally th {
     padding: 0 7px 5px;
@@ -484,6 +500,28 @@
     text-align: right;
     font-size: 0.78rem;
     color: var(--text-faint);
+  }
+
+  @media (max-width: 600px) {
+    .head { flex-wrap: wrap; gap: 8px; }
+    .nav { margin-left: auto; }
+    .count { white-space: nowrap; }
+    .tally { table-layout: fixed; }
+    .outcome-col { width: 16%; }
+    .terms-col, .state-col { width: 22%; }
+    .amp-col { width: 10%; }
+    .squared-col { width: 14%; }
+    .prob-col { width: 16%; }
+    .tally th { padding: 0 3px 5px; font-size: 0.6rem; }
+    .tally td { padding: 6px 3px; font-size: 0.7rem; }
+    .tally th.n, .tally td.n { white-space: normal; overflow-wrap: anywhere; }
+    .wide-label, .keyfig, .reads { display: none; }
+    .compact-label { display: inline; }
+    .outcome { display: block; font-size: 0.68rem; overflow-wrap: anywhere; }
+    .terms { gap: 3px; }
+    .term { min-width: 0; max-width: 100%; padding: 2px; }
+    .term :global(.figure) { min-width: 0; }
+    .frac { display: block; margin: 0 0 2px; font-size: 0.64rem; }
   }
 
   @media (prefers-reduced-motion: reduce) {

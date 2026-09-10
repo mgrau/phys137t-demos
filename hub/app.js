@@ -22,6 +22,12 @@ const DEMOS = [
     lecture: 7,
     description: 'Fill in the outcomes of a measurement, and their probabilities',
   },
+  {
+    slug: 'money_or_tiger',
+    title: 'Money or tiger',
+    lecture: 8,
+    description: 'One query tells you whether there is a tiger, not which door',
+  },
 ];
 
 const list = document.querySelector('#demo-list');
@@ -29,7 +35,29 @@ const frame = document.querySelector('#demo-frame');
 const title = document.querySelector('#active-title');
 const lecture = document.querySelector('#active-lecture');
 const description = document.querySelector('#active-description');
-const openLink = document.querySelector('#open-demo');
+const openLinks = document.querySelectorAll('.open-demo');
+const sidebar = document.querySelector('.sidebar');
+const menuButton = document.querySelector('#menu-toggle');
+const menuBackdrop = document.querySelector('#menu-backdrop');
+const mobile = matchMedia('(max-width: 700px)');
+
+function setMenuOpen(open, restoreFocus = false) {
+  sidebar.classList.toggle('menu-open', open);
+  menuButton.setAttribute('aria-expanded', String(open));
+  menuBackdrop.hidden = !open;
+  if (restoreFocus && mobile.matches) menuButton.focus();
+}
+
+menuButton.addEventListener('click', () => {
+  setMenuOpen(menuButton.getAttribute('aria-expanded') !== 'true');
+});
+menuBackdrop.addEventListener('click', () => setMenuOpen(false, true));
+document.addEventListener('keydown', (event) => {
+  if (event.key === 'Escape' && sidebar.classList.contains('menu-open')) {
+    setMenuOpen(false, true);
+  }
+});
+mobile.addEventListener('change', () => setMenuOpen(false));
 
 const pathOf = (demo) => `./${demo.slug}/`;
 
@@ -49,7 +77,10 @@ const buttons = DEMOS.map((demo) => {
   tag.title = `Lecture ${demo.lecture}`;
 
   button.append(name, tag);
-  button.addEventListener('click', () => select(demo.slug));
+  button.addEventListener('click', () => {
+    select(demo.slug);
+    setMenuOpen(false, true);
+  });
   list.append(button);
   return button;
 });
@@ -60,7 +91,7 @@ function select(slug, updateHash = true) {
   title.textContent = demo.title;
   lecture.textContent = `Lecture ${demo.lecture}`;
   description.textContent = demo.description;
-  openLink.href = pathOf(demo);
+  openLinks.forEach((link) => (link.href = pathOf(demo)));
   frame.title = `${demo.title} interactive demonstration`;
   if (frame.getAttribute('src') !== pathOf(demo)) frame.src = pathOf(demo);
 
@@ -89,7 +120,7 @@ select(location.hash.slice(1), false);
 // versa. No postMessage plumbing.
 
 const THEME_KEY = 'phys137t-theme';
-const themeButton = document.querySelector('#theme-toggle');
+const themeButtons = document.querySelectorAll('.theme-toggle');
 
 const SUN =
   '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">' +
@@ -101,15 +132,17 @@ const MOON =
 
 function paintThemeButton() {
   const dark = document.documentElement.dataset.theme === 'dark';
-  themeButton.innerHTML = dark ? SUN : MOON;
-  themeButton.title = dark ? 'Light mode' : 'Dark mode';
-  themeButton.setAttribute(
-    'aria-label',
-    dark ? 'Switch to light mode' : 'Switch to dark mode',
-  );
+  themeButtons.forEach((button) => {
+    button.innerHTML = dark ? SUN : MOON;
+    button.title = dark ? 'Light mode' : 'Dark mode';
+    button.setAttribute(
+      'aria-label',
+      dark ? 'Switch to light mode' : 'Switch to dark mode',
+    );
+  });
 }
 
-themeButton.addEventListener('click', () => {
+themeButtons.forEach((button) => button.addEventListener('click', () => {
   const next =
     document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
   document.documentElement.dataset.theme = next;
@@ -119,7 +152,7 @@ themeButton.addEventListener('click', () => {
   } catch {
     // Non-persistent is still usable for this session.
   }
-});
+}));
 
 // The framed demo has its own toggle; follow it when it is the one that changed.
 window.addEventListener('storage', (e) => {

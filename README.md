@@ -6,6 +6,7 @@ This directory is the source for the shared public demo collection:
 - Interference: <https://mgrau.github.io/phys137t-demos/interference/>
 - Quantum jumps: <https://mgrau.github.io/phys137t-demos/quantum_jumps/>
 - Measurement quiz: <https://mgrau.github.io/phys137t-demos/measurement_quiz/>
+- Money or tiger: <https://mgrau.github.io/phys137t-demos/money_or_tiger/>
 
 Each demo remains an independent Svelte app. The root build compiles them into
 separate static subfolders and adds the responsive selector at the site root.
@@ -23,12 +24,11 @@ list renders from, and its build output in `scripts/build.sh`.
 
 ## Planned
 
-Four more, in the order the lectures need them. Dates are the class meeting the
+Three more, in the order the lectures need them. Dates are the class meeting the
 demo is for. (The measurement quiz is built — see below.)
 
 | Demo | Lecture | Date |
 | --- | --- | --- |
-| Money or tiger — query the oracle and spend your queries | 8, Interference and Deutsch–Jozsa | Sep 17 |
 | Quantum Zeno — watch a rotation freeze as you measure it more often | 13, The Quantum Zeno Effect | Oct 8 |
 | BB84 — run the protocol, toggle Eve, tell her apart from channel noise | 18, Quantum cryptography | Oct 29 |
 | Grover — amplitudes reflected about their average, with N and iteration count as knobs | 20 / 21, Algorithms and Grover | Nov 17 / 19 |
@@ -144,6 +144,25 @@ points are grey because the data is not a category.
 Where two things on one plot need telling apart, separate them by *form*, not
 hue. The Rabi theory curve is dashed rather than coloured, so the measured
 points stay the only thing on the plot that came from the experiment.
+
+### Money or tiger — built
+
+Lecture 8's game: two doors, a tiger behind at most one, and an Oracle that
+flips the circle if there is a tiger behind the door the square selects. The
+classical panel gives you one query and lets you discover that it only covers
+one door; the quantum panel runs the Hadamard sandwich a stage at a time.
+
+Follows the **lecture's** convention: `in 10`, and a black square means tiger.
+Chapter 5 of the notes runs the same circuit from `in 11`, where a *white*
+square means tiger. Both are internally consistent and they are inverses of
+each other, so a student reading both would get opposite rules. Worth
+reconciling in the source material.
+
+Nothing is written down: the oracle, every intermediate state and the verdict
+are all simulated from the circuit, so the diagram on screen and the answer it
+gives cannot disagree. Both tiger placements produce identical states at every
+stage, which is the lecture's point — the algorithm learns *whether*, not
+*which*.
 
 ## Spacing
 

@@ -366,10 +366,12 @@ body {
     min-width: 54px;
   }
   .btn {
-    padding: 6px 10px;
-    font-size: 0.78rem;
+    padding: 6px 7px;
+    font-size: 0.72rem;
+    white-space: nowrap;
   }
-
+  .button-row { gap: 4px; flex-wrap: nowrap; }
+  .btn-theory { padding-inline: 4px; font-size: 0.65rem; }
 }
 
 /* ── Keyboard hints (hidden on touch) ── */
@@ -438,3 +440,46 @@ input[type="range"]::-moz-range-thumb {
     height: 28px;
   }
 }
+
+/* ── Pulse sequence controls ── */
+
+.seq-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+
+.seg {
+  display: inline-flex;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  overflow: hidden;
+}
+.seg-btn {
+  padding: 6px 12px;
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 500;
+  background: transparent;
+  color: var(--text-dim);
+  border: 0;
+  cursor: pointer;
+}
+.seg-btn + .seg-btn { border-left: 1px solid var(--line); }
+.seg-btn[aria-pressed="true"] { background: var(--fill); color: var(--on-fill); }
+.seg-btn:disabled { opacity: 0.5; cursor: default; }
+
+.look {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  color: var(--text);
+  cursor: pointer;
+}
+.look input { accent-color: var(--fill); width: 16px; height: 16px; }
+.look-dim { color: var(--text-faint); font-size: 0.78rem; }
+
+.mid-note { font-size: 0.85rem; color: var(--text-dim); margin-left: auto; }

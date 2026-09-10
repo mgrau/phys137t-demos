@@ -4,12 +4,15 @@
   import Chart from './lib/Chart.svelte';
   import {
     T_MAX,
+    T_PI,
     TIME_STEP,
     PHOTON_HIST_MAX,
     makeShot,
+    pDarkAfter,
     binKey,
     snapDuration,
     type BinData,
+    type Sequence,
   } from './lib/physics';
   import { theme } from './lib/theme.svelte';
   // The hub carries its own theme toggle in its workspace bar, so hide this one
@@ -28,6 +31,26 @@
 
   let ionState = $state<'bright' | 'dark' | 'pulsing'>('bright');
   let level = $state<'S' | 'D' | 'P'>('S');
+
+  // ── The sequence ──
+  //
+  // One pulse is Tuesday's experiment: the single shot is random, the curve
+  // is sharp. Two pulses is Thursday's question: is the ion in between a
+  // superposition or a coin already flipped? With nothing in between, two
+  // half-pulses finish each other and the ion is dark every time. Look in
+  // between and it is a coin flip. That is how you know the cloud is real.
+  let sequence = $state<Sequence>('one');
+  let look = $state(false);
+  /** What the look between the pulses read on the last single shot. */
+  let midShown = $state<0 | 1 | null>(null);
+
+  const theoryFn = $derived((t: number) => pDarkAfter(t, sequence, look));
+  const xLabel = $derived(
+    sequence === 'two' ? 'each 282 nm pulse (μs)' : '282 nm pulse duration (μs)',
+  );
+  const theoryLabel = $derived(
+    sequence === 'one' ? 'sin²(Ωt/2)' : look ? '½ sin²(Ωt)' : 'sin²(Ωt)',
+  );
 
   const binMap = new Map<number, BinData>();
   let shotCount = $state(0);
@@ -58,14 +81,14 @@
   // ═══════════════ Data ═══════════════
 
   function record(t: number) {
-    const { outcome, photonCount } = makeShot(t);
+    const { outcome, photonCount, mid } = makeShot(t, sequence, look);
     const key = binKey(t);
     const b = binMap.get(key) ?? { bright: 0, dark: 0 };
     outcome ? b.dark++ : b.bright++;
     binMap.set(key, b);
     photonHistogram[Math.min(photonCount, PHOTON_HIST_MAX)]++;
     shotCount++;
-    return outcome;
+    return { outcome, mid };
   }
 
   function wait(ms: number) {
@@ -83,9 +106,20 @@
     if (busy) return;
     busy = true;
     const t = duration;
+    midShown = null;
     setViz('pulsing', 'S');
     await wait(300);
-    const outcome = record(t);
+    const { outcome, mid } = record(t);
+    if (sequence === 'two') {
+      if (look && mid !== null) {
+        // The look: the 194 nm laser comes on and the ion shows a colour.
+        setViz(mid ? 'dark' : 'bright', mid ? 'D' : 'S');
+        midShown = mid;
+        await wait(550);
+      }
+      setViz('pulsing', mid ? 'D' : 'S');
+      await wait(300);
+    }
     setViz(outcome ? 'dark' : 'bright', outcome ? 'D' : 'S');
     await wait(650);
     setViz('bright', 'S');
@@ -97,7 +131,7 @@
     busy = true;
     const t = duration;
     for (let i = 0; i < 100; i++) {
-      const outcome = record(t);
+      const { outcome } = record(t);
       if (i % 10 === 0 || i === 99) {
         setViz(outcome ? 'dark' : 'bright', outcome ? 'D' : 'S');
         await wait(8);
@@ -116,7 +150,7 @@
       setDuration(t);
       let lastOutcome = 0;
       for (let j = 0; j < 100; j++) {
-        lastOutcome = record(t);
+        lastOutcome = record(t).outcome;
       }
       setViz(lastOutcome ? 'dark' : 'bright', lastOutcome ? 'D' : 'S');
       await wait(22);
@@ -129,7 +163,25 @@
     binMap.clear();
     photonHistogram.fill(0);
     shotCount = 0;
+    midShown = null;
     setViz('bright', 'S');
+  }
+
+  // The data mean different things under a different sequence, so a change
+  // of sequence starts the plot over rather than mixing two experiments.
+  function setSequence(next: Sequence) {
+    if (busy || next === sequence) return;
+    sequence = next;
+    clearAll();
+    // Half a π-pulse is the Hadamard, and the point of two pulses is what
+    // happens between two Hadamards, so start there.
+    if (next === 'two') setDuration(T_PI / 2);
+  }
+
+  function setLook(next: boolean) {
+    if (busy || next === look) return;
+    look = next;
+    clearAll();
   }
 
   function setDuration(next: number) {
@@ -180,6 +232,16 @@
       case 't':
       case 'T':
         showTheory = !showTheory;
+        break;
+      case '1':
+        setSequence('one');
+        break;
+      case '2':
+        setSequence('two');
+        break;
+      case 'l':
+      case 'L':
+        setLook(!look);
         break;
       case 'f':
       case 'F':
@@ -277,15 +339,39 @@
         {duration}
         onDurationChange={setDuration}
         {showTheory}
+        {theoryFn}
+        {xLabel}
       />
     </div>
   </div>
 
   <!-- Controls -->
   <div class="controls-bar">
+    <!-- Sequence row -->
+    <div class="seq-row">
+      <span class="slider-label">Sequence</span>
+      <div class="seg" role="group" aria-label="Pulse sequence">
+        <button class="seg-btn" aria-pressed={sequence === 'one'} disabled={busy}
+                onclick={() => setSequence('one')}>One pulse</button>
+        <button class="seg-btn" aria-pressed={sequence === 'two'} disabled={busy}
+                onclick={() => setSequence('two')}>Two pulses</button>
+      </div>
+      {#if sequence === 'two'}
+        <label class="look">
+          <input type="checkbox" checked={look} disabled={busy}
+                 onchange={(e) => setLook((e.currentTarget as HTMLInputElement).checked)} />
+          Look between the pulses
+          <span class="look-dim">194 nm on</span>
+        </label>
+        {#if midShown !== null}
+          <span class="mid-note">The look read <strong>{midShown ? 'dark' : 'bright'}</strong></span>
+        {/if}
+      {/if}
+    </div>
+
     <!-- Slider row -->
     <div class="slider-row">
-      <span class="slider-label">282 nm pulse</span>
+      <span class="slider-label">{sequence === 'two' ? 'each 282 nm pulse' : '282 nm pulse'}</span>
       <input
         type="range"
         min="0"
@@ -335,13 +421,13 @@
                border-color:{showTheory ? 'var(--fill)' : 'var(--line)'};
                color:{showTheory ? 'var(--on-fill)' : 'var(--text-faint)'};"
       >
-        sin²(Ωt/2)
+        {theoryLabel}
       </button>
     </div>
   </div>
 
   <!-- Keyboard hints (desktop only) -->
   <div class="keyboard-hints">
-    Space run · B batch · S sweep · C clear · ← → adjust · T theory · D theme · F fullscreen
+    Space run · B batch · S sweep · C clear · ← → adjust · 1/2 pulses · L look · T theory · D theme · F fullscreen
   </div>
 </main>

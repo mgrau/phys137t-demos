@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { tick } from 'svelte';
   import Figure from './lib/Figure.svelte';
   import Palette from './lib/Palette.svelte';
   import Walkthrough from './lib/Walkthrough.svelte';
@@ -51,6 +50,7 @@
   /** Transient explanation for a gesture that did nothing. */
   let hint = $state('');
   let workEl = $state<HTMLElement | null>(null);
+  let workPlayer = $state<ReturnType<typeof Walkthrough> | null>(null);
 
   /**
    * Open the working and bring it to the top of the view.
@@ -60,17 +60,43 @@
    * shows where the new content came from — and honoured only when the reader
    * has not asked for less motion.
    */
-  async function toggleWork() {
+  function toggleWork() {
     showWork = !showWork;
-    if (!showWork) return;
-    await tick();
-    workEl?.scrollIntoView({
+  }
+
+  $effect(() => {
+    if (!showWork || !workEl || !workPlayer) return;
+    const panel = workEl;
+    const player = workPlayer;
+    const targetTop = parseFloat(getComputedStyle(panel).scrollMarginTop) || 0;
+    panel.scrollIntoView({
       behavior: matchMedia('(prefers-reduced-motion: reduce)').matches
-        ? 'auto'
+        ? 'instant'
         : 'smooth',
       block: 'start',
     });
-  }
+
+    // Wait for the actual position to settle, including in the hub's iframe.
+    // This also handles instant/no-op scrolling, which emits no scrollend.
+    // If the reader interrupts the scroll, do not start the explanation away
+    // from the panel. Closing it or changing questions cancels this callback.
+    const started = performance.now();
+    let settledSince = started;
+    let previousTop = panel.getBoundingClientRect().top;
+    let frame: number;
+    function afterScroll(now: number) {
+      const top = panel.getBoundingClientRect().top;
+      if (Math.abs(top - previousTop) > 0.1) settledSince = now;
+      previousTop = top;
+      if (Math.abs(top - targetTop) <= 1 && now - settledSince >= 100) {
+        player.play();
+      } else if (now - started < 5000) {
+        frame = requestAnimationFrame(afterScroll);
+      }
+    }
+    frame = requestAnimationFrame(afterScroll);
+    return () => cancelAnimationFrame(frame);
+  });
 
   /** Cells as misty source, which is what both the renderer and grade want. */
   const sources = $derived(rows.map((r) => C.toSource(r.cell)));
@@ -483,7 +509,7 @@
 
   {#if showWork}
     <section class="panel work" bind:this={workEl}>
-      <Walkthrough source={question.source} shapes={glyphs} idPrefix={`w-${question.id}`} />
+      <Walkthrough bind:this={workPlayer} source={question.source} shapes={glyphs} idPrefix={`w-${question.id}`} />
       <p class="moral">{question.moral}</p>
     </section>
     <!-- Room to scroll the working to the top. Without it the document simply

@@ -3,7 +3,7 @@
   "private": true,
   "version": "1.0.0",
   "scripts": {
-    "check": "npm --prefix interference run check && npm --prefix quantum_jumps run check && npm --prefix measurement_quiz run check",
+    "check": "npm --prefix interference run check && npm --prefix quantum_jumps run check && npm --prefix measurement_quiz run check && npm --prefix money_or_tiger run check",
     "build": "bash scripts/build.sh",
     "dev": "npm run build && ./quantum_jumps/node_modules/.bin/vite dist --host 127.0.0.1 --port 5175"
   }

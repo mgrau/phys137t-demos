@@ -34,6 +34,28 @@ export function pDark(t: number): number {
   return Math.sin(OMEGA * t / 2) ** 2;
 }
 
+/** How many 282 nm pulses the sequence applies before the readout. */
+export type Sequence = 'one' | 'two';
+
+/**
+ * Probability of ending dark after the whole sequence.
+ *
+ * Two pulses of length t back to back are one pulse of length 2t, so with
+ * nothing in between the ion just keeps turning: sin²(Ωt). A look between
+ * them collapses the ion to bright or dark, and the second pulse starts over
+ * from whichever it got. Working the two branches gives 2p(1−p) with
+ * p = sin²(Ωt/2), which is exactly half the undisturbed curve.
+ *
+ * At a half-π pulse the undisturbed sequence is certain to end dark and the
+ * looked-at one is a coin flip. That contrast is the whole demonstration: a
+ * coin cannot come back, a superposition can.
+ */
+export function pDarkAfter(t: number, seq: Sequence, look: boolean): number {
+  if (seq === 'one') return pDark(t);
+  const p = pDark(t);
+  return look ? 2 * p * (1 - p) : Math.sin(OMEGA * t) ** 2;
+}
+
 /** Snap a duration to the pulse-time resolution. */
 export function snapDuration(t: number): number {
   return Math.round(t / TIME_STEP) * TIME_STEP;
@@ -53,6 +75,8 @@ export interface BinData {
 export interface ShotResult {
   outcome: 0 | 1;
   photonCount: number;
+  /** What the look between the pulses read, when there was one. */
+  mid: 0 | 1 | null;
 }
 
 /** Draw a Poisson-distributed photon count with the requested mean. */
@@ -72,13 +96,33 @@ function poisson(mean: number): number {
  * that state produces a photon count, and the count threshold sets the reported
  * measurement outcome (1 for dark, 0 for bright).
  */
-export function makeShot(t: number): ShotResult {
-  const preparedDark = Math.random() < pDark(t);
+export function makeShot(
+  t: number,
+  seq: Sequence = 'one',
+  look = false,
+): ShotResult {
+  let preparedDark: boolean;
+  let mid: 0 | 1 | null = null;
+  if (seq === 'one') {
+    preparedDark = Math.random() < pDark(t);
+  } else if (!look) {
+    preparedDark = Math.random() < Math.sin(OMEGA * t) ** 2;
+  } else {
+    // The look is a real readout with real photon statistics, so it can be
+    // misread like any other. The ion collapses to what it is, not to what
+    // the readout said, so the second pulse starts from `midDark`.
+    const p = pDark(t);
+    const midDark = Math.random() < p;
+    const midCount = poisson(midDark ? DARK_COUNT_MEAN : BRIGHT_COUNT_MEAN);
+    mid = midCount <= PHOTON_THRESHOLD ? 1 : 0;
+    preparedDark = Math.random() < (midDark ? 1 - p : p);
+  }
   const photonCount = poisson(
     preparedDark ? DARK_COUNT_MEAN : BRIGHT_COUNT_MEAN,
   );
   return {
     outcome: photonCount <= PHOTON_THRESHOLD ? 1 : 0,
     photonCount,
+    mid,
   };
 }

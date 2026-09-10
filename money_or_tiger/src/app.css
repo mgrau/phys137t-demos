@@ -1,0 +1,354 @@
+@import "tailwindcss";
+
+/*
+ * Theme tokens. See demos/README.md for the contract these share across the hub
+ * and every demo: light is the base, `prefers-color-scheme` supplies dark, and a
+ * `data-theme` attribute on <html> overrides both in either direction.
+ *
+ * The accent is a warm slate blue. It is deliberately the only hue in the
+ * chrome, and it is confined to active fills, the selected-row rule, the slider
+ * thumb and focus rings. The neutrals carry a matching cool bias so they read
+ * as chosen rather than as default grey.
+ *
+ * `--fill` keeps one meaning across both themes: the accent at whatever
+ * lightness reads as "on" against the current page.
+ */
+
+:root {
+  color-scheme: light;
+
+  --bg: #f9fafc;
+  --surface: #eff2f7;
+  --panel: #ffffff;
+  --panel-2: #e8ecf3;
+  --panel-3: #dae1ec;
+
+  --line: #dde2ea;
+  --line-strong: #bfc7d6;
+
+  --text: #14171d;
+  --text-mid: #454c59;
+  --text-dim: #5f6775;
+  --text-faint: #7d8695;
+
+  --fill: #375fa4;
+  --on-fill: #f7f9fc;
+
+  --focus: #375fa4;
+
+  /* The notation's own ink. White and black are a qubit's *value*, so its
+     figures never invert — they keep misty's light palette in both themes and
+     sit on this, the way a printed figure sits on a page. */
+  --paper: #ffffff;
+  --paper-edge: #d7dce4;
+  --paper-dim: #6b7280;
+  --spot: #e06a00;
+
+/* Semantic status, deliberately not the accent: the accent means
+"active", these mean "correct" and "not". */
+--good: #1f7a4d;
+--warn: #9a6410;
+--bad: #a8322f;
+
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+
+    --bg: #101215;
+    --surface: #16191e;
+    --panel: #191c21;
+    --panel-2: #222731;
+    --panel-3: #2c323d;
+
+    --line: #262b33;
+    --line-strong: #3a4150;
+
+    --text: #dfe2e8;
+    --text-mid: #aeb6c3;
+    --text-dim: #838b98;
+    --text-faint: #6a7280;
+
+    --fill: #5c86cc;
+    --on-fill: #0d1117;
+
+    --focus: #7fa3dd;
+
+  /* Paper goes grey in the dark theme rather than white: a sheet of pure white
+     glares against a dark page. It stays light, because the qubits keep misty's
+     light palette — white is a *value* here, not a background — and a white
+     qubit still has to read as white against it. */
+  --paper: #dfe3e9;
+  --paper-edge: #aab2bf;
+  --paper-dim: #565e6b;
+  --spot: #d95f00;
+
+    /* The notation's own ink. White and black are a qubit's *value*, so its
+       figures never invert — they keep misty's light palette in both themes and
+       sit on this, the way a printed figure sits on a page. */
+    --paper: #dfe3e9;
+    --paper-edge: #aab2bf;
+    --paper-dim: #565e6b;
+  --spot: #d95f00;
+    --spot: #d95f00;
+
+    --good: #4ba97a;
+    --warn: #cf9a3c;
+    --bad: #e0716c;
+
+  }
+}
+
+/* The toggle must win over the media query in both directions. */
+:root[data-theme="light"] {
+  color-scheme: light;
+
+  --bg: #f9fafc;
+  --surface: #eff2f7;
+  --panel: #ffffff;
+  --panel-2: #e8ecf3;
+  --panel-3: #dae1ec;
+
+  --line: #dde2ea;
+  --line-strong: #bfc7d6;
+
+  --text: #14171d;
+  --text-mid: #454c59;
+  --text-dim: #5f6775;
+  --text-faint: #7d8695;
+
+  --fill: #375fa4;
+  --on-fill: #f7f9fc;
+
+  --focus: #375fa4;
+
+/* Semantic status, deliberately not the accent: the accent means
+"active", these mean "correct" and "not". */
+--good: #1f7a4d;
+--warn: #9a6410;
+--bad: #a8322f;
+
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --bg: #101215;
+  --surface: #16191e;
+  --panel: #191c21;
+  --panel-2: #222731;
+  --panel-3: #2c323d;
+
+  --line: #262b33;
+  --line-strong: #3a4150;
+
+  --text: #dfe2e8;
+  --text-mid: #aeb6c3;
+  --text-dim: #838b98;
+  --text-faint: #6a7280;
+
+  --fill: #5c86cc;
+  --on-fill: #0d1117;
+
+  --focus: #7fa3dd;
+
+  --good: #4ba97a;
+  --warn: #cf9a3c;
+  --bad: #e0716c;
+
+}
+
+/*
+ * Layout tokens — shared, and the reason is that they drifted once already.
+ * Interference kept its spacing in Tailwind utilities while quantum jumps kept
+ * it in CSS, so the two ended up with different shell padding, band gap and
+ * panel padding despite being the same kind of surface. Every demo reads these
+ * now; do not reintroduce a `p-3` for a shell or a panel.
+ */
+:root {
+  /* Outer frame of the demo. Tight, because these are shown on a projector. */
+  --shell-pad: 10px 12px;
+  --shell-pad-fs: 20px 24px;
+  /* Between the stacked bands: figure, controls, sliders. */
+  --band-gap: 8px;
+  /* Inside a panel. */
+  --panel-pad: 9px 12px;
+  --radius: 8px;
+}
+
+html,
+body {
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100%;
+  margin: 0;
+}
+
+body {
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+    "Segoe UI", sans-serif;
+}
+
+button:focus-visible,
+input:focus-visible,
+a:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+/* ── Shell ── */
+
+.shell {
+  display: flex;
+  flex-direction: column;
+  gap: var(--band-gap);
+  min-height: 100dvh;
+  padding: var(--shell-pad);
+  max-width: 900px;
+  margin: 0 auto;
+}
+.shell.fullscreen { padding: var(--shell-pad-fs); }
+
+.bar { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+h1 { margin: 0; font-size: 1.15rem; font-weight: 650; letter-spacing: -0.01em; }
+.sub { margin: 2px 0 0; font-size: 0.8rem; color: var(--text-dim); }
+.controls { display: flex; gap: 6px; flex-shrink: 0; }
+
+.icon-btn {
+  background: none; border: 1px solid var(--line); border-radius: 6px;
+  padding: 6px 8px; cursor: pointer; color: var(--text-faint);
+  transition: color 0.12s, border-color 0.12s;
+}
+.icon-btn:hover { color: var(--text); border-color: var(--line-strong); }
+
+.panel {
+  background: var(--panel); border: 1px solid var(--line);
+  border-radius: var(--radius); padding: var(--panel-pad);
+}
+
+.panel-head {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 10px; margin-bottom: 9px;
+}
+
+.label {
+  margin: 0; font-size: 0.68rem; font-weight: 650;
+  letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-faint);
+}
+
+.say { margin: 0; font-size: 0.85rem; line-height: 1.55; color: var(--text-mid); }
+.say.paper { color: var(--paper-dim); text-align: center; text-wrap: balance; }
+
+/* Notation always sits on paper: white and black are a qubit's value. */
+.paperbox {
+  display: grid; justify-items: center; gap: 8px;
+  padding: 10px; background: var(--paper);
+  border: 1px solid var(--paper-edge); border-radius: var(--radius);
+}
+
+/* ── Buttons ── */
+
+.btn {
+  padding: 6px 13px; font: inherit; font-size: 0.85rem; font-weight: 500;
+  border: 1px solid transparent; border-radius: 6px; cursor: pointer;
+}
+.btn-primary { background: var(--fill); border-color: var(--fill); color: var(--on-fill); }
+.btn-secondary { background: var(--panel-2); color: var(--text-mid); border-color: var(--line); }
+.btn-secondary:hover:not(:disabled) { background: var(--panel-3); color: var(--text); }
+.btn:disabled { opacity: 0.4; cursor: default; }
+
+.row { display: flex; align-items: center; flex-wrap: wrap; gap: 7px; }
+
+.pill {
+  padding: 5px 11px; font: inherit; font-size: 0.82rem; font-weight: 550;
+  color: var(--text-dim); background: var(--panel-2);
+  border: 1px solid transparent; border-radius: 6px; cursor: pointer;
+}
+.pill[aria-current="true"] {
+  background: var(--fill); border-color: var(--fill); color: var(--on-fill);
+}
+
+.note { margin: 9px 0 0; font-size: 0.8rem; line-height: 1.5; color: var(--text-dim); }
+.hint { margin: 0; text-align: center; font-size: 0.72rem; color: var(--text-faint); }
+
+/* ── Step controls, matched to the measurement quiz ── */
+
+.nav { display: flex; align-items: center; gap: 5px; }
+.count {
+  margin-right: 3px; font-size: 0.72rem;
+  font-variant-numeric: tabular-nums; color: var(--text-faint);
+}
+.nb {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 32px; height: 34px; padding: 0 10px;
+  font: inherit; font-size: 1rem; line-height: 1; color: var(--text-mid);
+  background: var(--panel-2); border: 1px solid var(--line);
+  border-radius: 6px; cursor: pointer;
+}
+.nb:hover:not(:disabled) { color: var(--text); border-color: var(--line-strong); }
+.nb:disabled { opacity: 0.35; cursor: default; }
+
+.play {
+  display: inline-flex; align-items: center; gap: 6px;
+  height: 34px; padding: 0 14px;
+  font: inherit; font-size: 0.85rem; font-weight: 600;
+  color: var(--on-fill); background: var(--fill);
+  border: 1px solid var(--fill); border-radius: 6px; cursor: pointer;
+  transition: filter 0.12s;
+}
+.play:hover { filter: brightness(1.08); }
+
+/* ── Verdict ── */
+
+.verdict { font-size: 0.92rem; font-weight: 700; }
+.verdict.tiger { color: var(--bad); }
+.verdict.safe { color: var(--good); }
+
+/* ── The state riding down beside the circuit ── */
+
+/* Two columns: the circuit, and a lane the state travels down. The lane is a
+   grid item so it is exactly as tall as the circuit, which is what makes the
+   measured row position usable as `top` with nothing to correct for. */
+.travel {
+  display: grid;
+  /* An empty column mirrors the lane, so the circuit stays centred in the
+     panel rather than being shoved left by the state beside it. Both sides
+     can collapse on a narrow screen; the circuit never does. */
+  grid-template-columns: minmax(0, 250px) auto minmax(180px, 250px);
+  justify-content: center;
+}
+
+.travel .lane { position: relative; grid-column: 3; }
+
+.travel .rider {
+  position: absolute;
+  left: 30px;
+  transform: translateY(-50%);
+  padding: 4px 7px;
+  background: var(--paper);
+  border: 2px solid var(--spot);
+  border-radius: 8px;
+  transition: top 0.55s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: settle 0.35s ease-out;
+}
+
+/* A leader back to the wire, so the box reads as "the state here" rather than
+   as a second diagram parked alongside. */
+.travel .rider::before {
+  content: '';
+  position: absolute;
+  right: 100%;
+  top: 50%;
+  width: 24px;
+  border-top: 2px dotted var(--spot);
+}
+
+@keyframes settle {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .travel .rider { transition: none; animation: none; }
+}

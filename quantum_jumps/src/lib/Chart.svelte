@@ -17,6 +17,8 @@
     duration,
     onDurationChange,
     showTheory,
+    theoryFn = pDark,
+    xLabel = '282 nm pulse duration (μs)',
   }: {
     binMap: Map<number, BinData>;
     shotCount: number;
@@ -24,6 +26,9 @@
     duration: number;
     onDurationChange: (duration: number) => void;
     showTheory: boolean;
+    /** Probability of dark against pulse length, for the dashed model line. */
+    theoryFn?: (t: number) => number;
+    xLabel?: string;
   } = $props();
 
   let container: HTMLDivElement;
@@ -66,6 +71,8 @@
     const _sc = shotCount;
     const _dur = duration;
     const _th = showTheory;
+    const _fn = theoryFn;
+    const _xl = xLabel;
     // Reading the palette here is what makes the canvas redraw on a theme flip:
     // it is $state underneath, so this effect depends on it.
     const p = theme.palette;
@@ -74,7 +81,7 @@
     canvas.height = Math.round(h * dpr);
     const ctx = canvas.getContext('2d')!;
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    draw(ctx, w, h, binMap, photonHistogram, _sc, _dur, _th, p);
+    draw(ctx, w, h, binMap, photonHistogram, _sc, _dur, _th, _fn, _xl, p);
   });
 
   // ── Drag interaction ──
@@ -125,6 +132,8 @@
     totalShots: number,
     dur: number,
     theory: boolean,
+    model: (t: number) => number,
+    xLabelText: string,
     p: Palette,
   ) {
     ctx.clearRect(0, 0, w, h);
@@ -182,7 +191,7 @@
       for (let i = 0; i <= pW; i++) {
         const t = (i / pW) * T_MAX;
         const x = M.left + i;
-        const y = yS(pDark(t));
+        const y = yS(model(t));
         i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
       }
       ctx.stroke();
@@ -282,7 +291,7 @@
     ctx.font = `${titleFs}px ${FONT}`;
     ctx.fillStyle = p.text;
     ctx.fillText(
-      '282 nm pulse duration (μs)',
+      xLabelText,
       M.left + pW / 2,
       M.top + pH + 42,
     );
