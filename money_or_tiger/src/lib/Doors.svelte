@@ -1,149 +1,314 @@
 <script lang="ts">
-  /**
-   * The two doors, labelled the way the lecture labels them: one with a white
-   * square, one with a black square. The label on the door is the same square
-   * that goes into the oracle, and that correspondence is the thing a student
-   * has to hold on to, so it is drawn in the course's own notation rather than
-   * written as a word.
-   *
-   * They swing rather than cut. One button opens *both* — which is the whole
-   * reason you only care whether there is a tiger, not which door it is behind
-   * — so opening is one gesture and both panels move together.
-   */
   import Figure from './Figure.svelte';
   import type { Where } from './game';
 
-  let { where, open }: { where: Where; open: boolean } = $props();
+  let {
+    where,
+    open,
+    onToggle,
+  }: {
+    where: Where;
+    open: boolean;
+    onToggle: () => void;
+  } = $props();
 
   const DOORS = [
-    { id: 'white' as const, label: 'white', source: '0' },
-    { id: 'black' as const, label: 'black', source: '1' },
+    { id: 'white' as const, name: 'White door', source: '0' },
+    { id: 'black' as const, name: 'Black door', source: '1' },
   ];
 </script>
 
-<div class="doors">
-  {#each DOORS as door, i}
+<div class="doors-stage">
+  {#each DOORS as door, index}
     {@const tiger = where === door.id}
-    <div class="frame" class:open>
-      <!-- What is behind, revealed as the panel swings away. -->
-      <div class="behind" class:tiger>
-        <span class="what">{tiger ? '🐅' : '💰'}</span>
-        <span class="cap">{tiger ? 'tiger' : 'money'}</span>
-      </div>
-
-      <!-- The door itself. Hinged on the outside edge so the pair opens
-           outwards, like a cupboard. -->
-      <div class="panel" class:right={i === 1}>
-        <div class="plate">
-          <Figure source={door.source} idPrefix={`door-${door.id}`} scale={0.7}
-                  shapeOrder={['square']}
-                  ariaLabel={`The door labelled with a ${door.label} square`} />
+    <figure class="door-unit">
+      <div class="door-frame" class:open>
+        <div class="behind" class:tiger aria-hidden={!open}>
+          <span class="prize" aria-hidden="true">{tiger ? '🐅' : '💰'}</span>
+          <strong>{tiger ? 'TIGER' : 'MONEY'}</strong>
+          <small>{tiger ? 'Do not open!' : 'You win!'}</small>
         </div>
-        <span class="knob" aria-hidden="true"></span>
+        <div class="door-panel" class:right={index === 1}>
+          <span class="panel-inset top"></span>
+          <span class="panel-inset bottom"></span>
+          <span class="hinge hinge-top" aria-hidden="true"></span>
+          <span class="hinge hinge-bottom" aria-hidden="true"></span>
+          <div class="door-plate">
+            <Figure
+              source={door.source}
+              idPrefix={`door-${door.id}`}
+              scale={0.68}
+              shapeOrder={['square']}
+              ariaLabel={`A ${door.id} square`}
+            />
+          </div>
+          <span class="knob" aria-hidden="true"></span>
+        </div>
       </div>
-    </div>
+      <figcaption>{door.name}</figcaption>
+    </figure>
+
+    {#if index === 0}
+      <div class="button-console">
+        <span class="console-label">BOTH DOORS</span>
+        <button
+          class="show-button"
+          class:pressed={open}
+          aria-pressed={open}
+          aria-label={open ? 'Close both doors' : 'Open both doors'}
+          onclick={onToggle}
+        >
+          <span class="button-face" aria-hidden="true"></span>
+        </button>
+        <strong>{open ? 'CLOSE' : 'OPEN'}</strong>
+        <small>press once</small>
+      </div>
+    {/if}
   {/each}
 </div>
 
-<p class="sr" aria-live="polite">
+<p class="sr-only" aria-live="polite">
   {#if open}
-    The white door has {where === 'white' ? 'a tiger' : 'money'}; the black door
-    has {where === 'black' ? 'a tiger' : 'money'}.
+    The white door has {where === 'white' ? 'a tiger' : 'money'};
+    the black door has {where === 'black' ? 'a tiger' : 'money'}.
   {:else}
     Both doors are closed.
   {/if}
 </p>
 
 <style>
-  .doors {
+  .doors-stage {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: minmax(0, 1fr) 82px minmax(0, 1fr);
+    align-items: end;
     gap: 10px;
-    /* Depth, so the swing reads as a door rather than a squash. */
-    perspective: 900px;
+    padding: 14px 6px 4px;
+    perspective: 1100px;
   }
 
-  .frame {
+  .door-unit {
+    min-width: 0;
+    margin: 0;
+  }
+
+  .door-frame {
     position: relative;
-    min-height: 132px;
-    border-radius: var(--radius);
-    background: var(--paper);
-    border: 1px solid var(--paper-edge);
+    aspect-ratio: 0.67;
+    min-height: 238px;
+    max-height: 330px;
     overflow: hidden;
+    background:
+      radial-gradient(circle at 50% 38%, color-mix(in srgb, var(--panel-3) 76%, transparent), transparent 60%),
+      var(--surface);
+    border: 7px solid color-mix(in srgb, var(--text) 72%, #6f5339);
+    border-bottom-width: 10px;
+    border-radius: 5px 5px 2px 2px;
+    box-shadow:
+      inset 0 0 0 2px color-mix(in srgb, var(--line-strong) 72%, transparent),
+      0 10px 24px color-mix(in srgb, var(--text) 13%, transparent);
+    transform-style: preserve-3d;
   }
 
   .behind {
     position: absolute;
     inset: 0;
     display: grid;
-    gap: 2px;
     place-content: center;
     justify-items: center;
-    background: var(--panel-3);
-  }
-  .behind.tiger {
-    background: color-mix(in srgb, var(--bad) 16%, var(--panel-3));
-  }
-  .what {
-    font-size: 2.3rem;
-    line-height: 1;
-  }
-  .cap {
-    font-size: 0.72rem;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    color: var(--text-dim);
+    gap: 4px;
+    background:
+      radial-gradient(circle at 50% 48%, color-mix(in srgb, var(--good) 22%, transparent), transparent 55%),
+      repeating-linear-gradient(0deg, transparent 0 19px, color-mix(in srgb, var(--line) 45%, transparent) 20px),
+      var(--panel);
+    text-align: center;
   }
 
-  .panel {
+  .behind.tiger {
+    background:
+      radial-gradient(circle at 50% 48%, color-mix(in srgb, var(--bad) 26%, transparent), transparent 58%),
+      repeating-linear-gradient(0deg, transparent 0 19px, color-mix(in srgb, var(--line) 45%, transparent) 20px),
+      var(--panel);
+  }
+
+  .prize {
+    font-size: clamp(2.5rem, 5vw, 4.2rem);
+    line-height: 1;
+    filter: drop-shadow(0 4px 7px color-mix(in srgb, var(--text) 18%, transparent));
+  }
+
+  .behind strong {
+    font-size: 0.86rem;
+    letter-spacing: 0.18em;
+  }
+
+  .behind small {
+    color: var(--text-dim);
+    font-size: 0.72rem;
+  }
+
+  .door-panel {
     position: absolute;
     inset: 0;
-    display: grid;
-    place-content: center;
-    justify-items: center;
-    background: var(--paper);
-    border-right: 1px solid var(--paper-edge);
+    background:
+      linear-gradient(90deg, rgba(255,255,255,0.08), transparent 18%, rgba(0,0,0,0.12) 86%),
+      linear-gradient(135deg, #9a6237, #72401f 55%, #4e2c1c);
+    border: 2px solid #3d2417;
     transform-origin: left center;
-    transition: transform 0.65s cubic-bezier(0.4, 0, 0.2, 1);
+    transform-style: preserve-3d;
+    transition: transform 800ms cubic-bezier(0.22, 0.72, 0.18, 1);
     backface-visibility: hidden;
   }
-  .panel.right {
+
+  .door-panel.right {
     transform-origin: right center;
-    border-right: 0;
-    border-left: 1px solid var(--paper-edge);
-  }
-  .frame.open .panel {
-    transform: rotateY(-105deg);
-  }
-  .frame.open .panel.right {
-    transform: rotateY(105deg);
   }
 
-  .plate {
-    display: inline-flex;
-    padding: 3px 6px;
+  .open .door-panel {
+    transform: rotateY(-106deg);
+  }
+
+  .open .door-panel.right {
+    transform: rotateY(106deg);
+  }
+
+  .panel-inset {
+    position: absolute;
+    left: 12%;
+    right: 12%;
+    border: 3px ridge rgba(47, 24, 11, 0.55);
+    background: linear-gradient(135deg, rgba(255,255,255,0.08), rgba(0,0,0,0.1));
+    box-shadow: inset 0 0 0 5px rgba(108, 60, 27, 0.22);
+  }
+
+  .panel-inset.top {
+    top: 7%;
+    height: 36%;
+  }
+
+  .panel-inset.bottom {
+    bottom: 7%;
+    height: 35%;
+  }
+
+  .door-plate {
+    position: absolute;
+    left: 50%;
+    top: 25%;
+    z-index: 2;
+    display: grid;
+    place-items: center;
+    min-width: 48px;
+    min-height: 48px;
+    padding: 5px;
+    transform: translate(-50%, -50%);
     background: var(--paper);
-    border: 1px solid var(--paper-edge);
-    border-radius: 5px;
+    border: 2px solid #d1a856;
+    border-radius: 7px;
+    box-shadow: 0 3px 9px rgba(45, 24, 9, 0.34);
   }
 
-  /* A handle, so a closed panel reads as a door and not a card. */
   .knob {
     position: absolute;
-    top: 50%;
-    right: 9px;
-    width: 7px;
-    height: 7px;
-    margin-top: -3px;
+    z-index: 3;
+    top: 51%;
+    right: 9%;
+    width: 13px;
+    height: 13px;
+    border: 2px solid #6d4915;
     border-radius: 50%;
-    background: var(--paper-edge);
-  }
-  .panel.right .knob {
-    right: auto;
-    left: 9px;
+    background: radial-gradient(circle at 35% 30%, #f5d373, #b5791d 62%, #6f4610);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.35);
   }
 
-  .sr {
+  .right .knob {
+    right: auto;
+    left: 9%;
+  }
+
+  .hinge {
+    position: absolute;
+    z-index: 3;
+    left: 2px;
+    width: 6px;
+    height: 24px;
+    border-radius: 2px;
+    background: linear-gradient(90deg, #75501c, #e1b75c, #79511b);
+  }
+
+  .right .hinge {
+    right: 2px;
+    left: auto;
+  }
+
+  .hinge-top { top: 15%; }
+  .hinge-bottom { bottom: 15%; }
+
+  figcaption {
+    margin-top: 7px;
+    color: var(--text-mid);
+    font-size: 0.74rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-align: center;
+    text-transform: uppercase;
+  }
+
+  .button-console {
+    align-self: center;
+    display: grid;
+    justify-items: center;
+    gap: 5px;
+    margin-bottom: 10px;
+    padding: 12px 7px 10px;
+    background: linear-gradient(145deg, var(--panel-2), var(--panel-3));
+    border: 1px solid var(--line-strong);
+    border-radius: 12px;
+    box-shadow: 0 8px 18px color-mix(in srgb, var(--text) 11%, transparent);
+  }
+
+  .console-label,
+  .button-console small {
+    color: var(--text-faint);
+    font-size: 0.58rem;
+    letter-spacing: 0.09em;
+    text-align: center;
+    text-transform: uppercase;
+  }
+
+  .button-console strong {
+    color: var(--text-mid);
+    font-size: 0.68rem;
+    letter-spacing: 0.12em;
+  }
+
+  .show-button {
+    position: relative;
+    width: 58px;
+    height: 58px;
+    padding: 0;
+    cursor: pointer;
+    background: linear-gradient(#6d7786, #343b46);
+    border: 1px solid #262c34;
+    border-radius: 50%;
+    box-shadow: 0 5px 0 #242a31, 0 7px 12px rgba(0,0,0,0.28);
+  }
+
+  .button-face {
+    position: absolute;
+    inset: 8px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 36% 26%, #ff8a72, #d23824 52%, #8f1a12 75%);
+    border: 2px solid #79180f;
+    box-shadow: inset 0 4px 7px rgba(255,255,255,0.27), inset 0 -5px 7px rgba(74,0,0,0.35);
+  }
+
+  .show-button:active,
+  .show-button.pressed {
+    transform: translateY(3px);
+    box-shadow: 0 2px 0 #242a31, 0 4px 7px rgba(0,0,0,0.24);
+  }
+
+  .sr-only {
     position: absolute;
     width: 1px;
     height: 1px;
@@ -152,9 +317,30 @@
     white-space: nowrap;
   }
 
-  @media (prefers-reduced-motion: reduce) {
-    .panel {
-      transition: none;
+  @media (max-width: 520px) {
+    .doors-stage {
+      grid-template-columns: minmax(0, 1fr) 62px minmax(0, 1fr);
+      gap: 5px;
+      padding-inline: 0;
     }
+
+    .door-frame {
+      min-height: 205px;
+      border-width: 5px;
+      border-bottom-width: 8px;
+    }
+
+    .button-console {
+      padding-inline: 4px;
+    }
+
+    .show-button {
+      width: 48px;
+      height: 48px;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .door-panel { transition: none; }
   }
 </style>

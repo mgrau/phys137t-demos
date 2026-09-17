@@ -2,168 +2,120 @@
   import Figure from './lib/Figure.svelte';
   import Doors from './lib/Doors.svelte';
   import Oracle from './lib/Oracle.svelte';
+  import QuantumOracle from './lib/QuantumOracle.svelte';
+  import type { Hadamards, InitialState } from './lib/quantum';
   import {
     WHERE,
-    STAGES,
-
-    quantumCircuit,
-    classicalAnswer,
-    stateAt,
-    verdict,
+    oracle as oracleGate,
+    oracleOutput,
     type Where,
   } from './lib/game';
   import { theme } from './lib/theme.svelte';
 
+  type Door = 'white' | 'black';
+  type Mode = 'explore' | 'single' | 'quantum';
+  type OracleView = 'oracle' | 'inside';
+
   const embedded = window.self !== window.top;
-  const SHAPES = ['circle', 'square'];
+  const MODES: { id: Mode; number: string; title: string; short: string }[] = [
+    { id: 'explore', number: '01', title: 'Explore', short: 'Query freely' },
+    { id: 'single', number: '02', title: 'One query', short: 'Oracle shuts off' },
+    { id: 'quantum', number: '03', title: 'Quantum oracle', short: 'Build, follow, measure' },
+  ];
 
-  // ── Where the tiger is ──
-  //
-  // Hidden by default. The point of the lecture is that you do not know, and a
-  // demo that shows you the answer up front is a demo of the answer.
-
+  let mode = $state<Mode>('explore');
+  let oracleView = $state<OracleView>('oracle');
   let where = $state<Where>('black');
   let revealed = $state(false);
+  let selectedDoor = $state<Door>('white');
+  let circleInput = $state<'0' | '1'>('0');
+  let asked = $state<Door[]>([]);
+  let phase = $state<'idle' | 'entering' | 'inside' | 'leaving' | 'done'>('idle');
+  let queryRun = 0;
+
+  const currentAsked = $derived(
+    phase === 'idle' ? selectedDoor : asked.length ? asked[asked.length - 1] : selectedDoor,
+  );
+  const querySquare = $derived((currentAsked === 'black' ? '1' : '0') as '0' | '1');
+  const circleOutput = $derived(oracleOutput(where, querySquare, circleInput));
+  const queryRunning = $derived(phase !== 'idle' && phase !== 'done');
+  const oracleSpent = $derived(mode === 'single' && asked.length >= 1);
+  const observations = $derived([...new Set(asked.slice(0, queryRunning ? -1 : undefined))]);
+
+  let gates = $state<Hadamards>([false, false, false, false]);
+  let quantumInput = $state<InitialState>('01');
+  let round = $state(0);
+
+  function cancelQuery() {
+    queryRun += 1;
+    asked = [];
+    phase = 'idle';
+  }
+
+  function resetActivity() {
+    cancelQuery();
+    round += 1;
+  }
+
+  function selectMode(next: Mode) {
+    mode = next;
+    resetActivity();
+  }
 
   function place(next: Where) {
     where = next;
-    reset();
+    revealed = false;
+    resetActivity();
+  }
+
+  function chooseDoor(next: Door) {
+    if (queryRunning || oracleSpent) return;
+    selectedDoor = next;
+    if (phase === 'done') phase = 'idle';
+  }
+
+  function toggleQueryInput(wire: number) {
+    if (queryRunning || oracleSpent) return;
+    if (wire === 0) selectedDoor = selectedDoor === 'white' ? 'black' : 'white';
+    else circleInput = circleInput === '0' ? '1' : '0';
+    phase = 'idle';
   }
 
   function shuffle() {
     const options: Where[] = ['none', 'white', 'black'];
     where = options[Math.floor(Math.random() * options.length)];
     revealed = false;
-    reset();
+    resetActivity();
   }
 
-  // ── The classical attempt ──
+  async function ask() {
+    if (queryRunning || oracleSpent || (mode !== 'explore' && mode !== 'single')) return;
+    const run = ++queryRun;
+    asked = [...asked, selectedDoor];
+    const beat = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+    // The white-door oracle has NOTs around its inverted control, so Misty's
+    // three-layer animation takes longer than the one-layer cases.
+    const duration = where === 'white' ? 1450 : 760;
 
-  let asked = $state<'white' | 'black' | null>(null);
-  /** Where the circle is on its way through the box. */
-  let phase = $state<'idle' | 'entering' | 'inside' | 'leaving' | 'done'>('idle');
-
-  const classicalFlipped = $derived(asked ? classicalAnswer(where, asked) : false);
-
-  /**
-   * Send the circle through, one leg at a time.
-   *
-   * Staged rather than a single transition so the box can hold the circle for a
-   * beat: the flip happens out of sight, which is the honest picture of an
-   * oracle — you see what went in and what came out, never the mechanism.
-   */
-  async function ask(door: 'white' | 'black') {
-    if (asked) return; // the oracle works once
-    asked = door;
-    const beat = (ms: number) => new Promise((r) => setTimeout(r, ms));
     phase = 'entering';
-    await beat(60);
+    await beat(duration * 0.25);
+    if (run !== queryRun) return;
     phase = 'inside';
-    await beat(620);
+    await beat(duration * 0.4);
+    if (run !== queryRun) return;
     phase = 'leaving';
-    await beat(560);
+    await beat(duration * 0.35);
+    if (run !== queryRun) return;
     phase = 'done';
   }
-
-  function resetQuery() {
-    asked = null;
-    phase = 'idle';
-  }
-
-  // ── The quantum way ──
-
-  let at = $state(-1);
-  let playing = $state(false);
-
-  const stage = $derived(at >= 0 ? STAGES[at] : null);
-  const last = STAGES.length - 1;
-
-  function reset() {
-    asked = null;
-    phase = 'idle';
-    at = -1;
-    playing = false;
-  }
-
-  $effect(() => {
-    if (!playing) return;
-    if (at >= last) {
-      playing = false;
-      return;
-    }
-    const id = setTimeout(() => (at += 1), 1500);
-    return () => clearTimeout(id);
-  });
-
-  /**
-   * The circuit is drawn once, whole, and the state travels down it.
-   *
-   * Building it up stage by stage made the diagram jump about as it grew.
-   * Drawing it once and moving a cloud along it is what the lecture describes
-   * anyway — the state passes *through* the gates.
-   */
-  const fullCircuit = $derived(quantumCircuit(where, 'measure'));
-
-  /** The state after the stage we have reached. */
-  const shownState = $derived.by(() => {
-    if (!stage) return stateAt(where, 'start');
-    try {
-      return stateAt(where, stage.id === 'measure' ? 'interfered' : stage.id);
-    } catch {
-      return '';
-    }
-  });
-
-  /**
-   * Which circuit layer the state has passed. -1 is the input row.
-   *
-   * The white-door oracle takes three layers rather than one, because
-   * inverting a control needs a NOT either side, so the rows after it shift.
-   */
-  const oracleLayers = $derived(where === 'white' ? 3 : 1);
-
-  const passed = $derived.by(() => {
-    switch (stage?.id) {
-      case undefined:
-      case 'start':
-        return -1;
-      case 'superposed':
-        return 0;
-      case 'queried':
-        return oracleLayers;
-      case 'interfered':
-        return oracleLayers + 1;
-      default:
-        return oracleLayers + 2;
-    }
-  });
-
-  let circuitFig = $state<ReturnType<typeof Figure> | null>(null);
-  let travelY = $state<number | null>(null);
-
-  $effect(() => {
-    const layer = passed;
-    void where;
-    void shownState;
-    if (!circuitFig) return;
-    const id = requestAnimationFrame(() => {
-      travelY = circuitFig?.rowY(layer) ?? null;
-    });
-    return () => cancelAnimationFrame(id);
-  });
-
-  const answer = $derived(verdict(where));
-  const finished = $derived(at >= last);
-
-  // ── Fullscreen ──
 
   let mainEl: HTMLElement;
   let isFullscreen = $state(false);
 
   $effect(() => {
-    const on = () => (isFullscreen = !!document.fullscreenElement);
-    document.addEventListener('fullscreenchange', on);
-    return () => document.removeEventListener('fullscreenchange', on);
+    const onFullscreen = () => (isFullscreen = !!document.fullscreenElement);
+    document.addEventListener('fullscreenchange', onFullscreen);
+    return () => document.removeEventListener('fullscreenchange', onFullscreen);
   });
 
   function toggleFullscreen() {
@@ -171,10 +123,10 @@
     else mainEl.requestFullscreen();
   }
 
-  function onKeydown(e: KeyboardEvent) {
-    if (e.target instanceof HTMLInputElement) return;
-    if (e.key === 'f' || e.key === 'F') toggleFullscreen();
-    if (e.key === 'd' || e.key === 'D') theme.toggle();
+  function onKeydown(event: KeyboardEvent) {
+    if (event.target instanceof HTMLInputElement || event.target instanceof HTMLButtonElement) return;
+    if (event.key === 'f' || event.key === 'F') toggleFullscreen();
+    if (event.key === 'd' || event.key === 'D') theme.toggle();
   }
 </script>
 
@@ -182,165 +134,198 @@
 
 <main bind:this={mainEl} class="shell" class:fullscreen={isFullscreen}>
   <header class="bar">
-    <div class="min-w-0">
-      <h1>Money or Tiger</h1>
-      <p class="sub">PHYS 137T · Lecture 8 · Interference and Deutsch–Jozsa</p>
+    <div>
+      <p class="course">PHYS 137T · QUANTUM INFORMATION</p>
+      <h1>Money or Tiger?</h1>
+      <p class="sub">Can one oracle query tell whether both doors are safe to open?</p>
     </div>
     <div class="controls">
       {#if !embedded}
-        <button class="icon-btn" onclick={() => theme.toggle()}
+        <button
+          class="icon-btn"
+          onclick={() => theme.toggle()}
           title={theme.isDark ? 'Light mode (D)' : 'Dark mode (D)'}
-          aria-label={theme.isDark ? 'Switch to light mode' : 'Switch to dark mode'}>
+          aria-label={theme.isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+        >
           {#if theme.isDark}
-            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+            <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
           {:else}
-            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+            <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
           {/if}
         </button>
       {/if}
-      <button class="icon-btn" onclick={toggleFullscreen}
+      <button
+        class="icon-btn"
+        onclick={toggleFullscreen}
         title={isFullscreen ? 'Exit fullscreen (F)' : 'Fullscreen (F)'}
-        aria-label={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}>
+        aria-label={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
+      >
         {#if isFullscreen}
-          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 14h6v6M20 10h-6V4M14 10l7-7M3 21l7-7"/></svg>
+          <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 14h6v6M20 10h-6V4M14 10l7-7M3 21l7-7"/></svg>
         {:else}
-          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
+          <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
         {/if}
       </button>
     </div>
   </header>
 
-  <!-- The doors -->
-  <section class="panel">
-    <div class="panel-head">
-      <h2 class="label">Two doors</h2>
-      <div class="row">
-        <button class="btn btn-secondary" onclick={shuffle}>Hide a tiger</button>
-        <button class="btn btn-primary" onclick={() => (revealed = !revealed)}>
-          {revealed ? 'Close the doors' : 'Open both doors'}
-        </button>
+  <nav class="modebar" aria-label="Activity mode">
+    {#each MODES as item}
+      <button
+        class="mode-tab"
+        class:active={mode === item.id}
+        aria-current={mode === item.id ? 'step' : undefined}
+        onclick={() => selectMode(item.id)}
+      >
+        <span class="mode-number">{item.number}</span>
+        <span class="mode-copy">
+          <strong>{item.title}</strong>
+          <small>{item.short}</small>
+        </span>
+      </button>
+    {/each}
+  </nav>
+
+  <section class="workspace" class:quantum={mode === 'quantum'}>
+    <section class="show-panel" aria-labelledby="show-heading">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">The game show</p>
+          <h2 id="show-heading">What is behind the doors?</h2>
+        </div>
+        <button class="quiet-btn" onclick={shuffle}>New round</button>
       </div>
-    </div>
 
-    <Doors {where} open={revealed} />
+      <Doors {where} open={revealed} onToggle={() => (revealed = !revealed)} />
 
-    <p class="note">
-      Behind each door is money or a tiger. One button opens <em>both</em>, so
-      you do not care which door the tiger is behind — only whether there is one
-      at all.
-    </p>
-
-    <div class="row" style="margin-top:9px">
-      <span class="label" style="margin-right:3px">Put it</span>
-      {#each WHERE as w}
-        <button class="pill" aria-current={where === w.id}
-                onclick={() => place(w.id)}>{w.short}</button>
-      {/each}
-    </div>
-  </section>
-
-  <!-- Classical -->
-  <section class="panel">
-    <div class="panel-head">
-      <h2 class="label">The classical way</h2>
-      <span class="count">{asked ? 1 : 0} of 1 query used</span>
-    </div>
-
-    <p class="say">
-      The Oracle flips the circle if there is a tiger behind the door the square
-      selects. Set the square to a door and send a white circle through.
-    </p>
-
-    <div class="row" style="margin-top:9px">
-      <button class="btn btn-secondary" disabled={!!asked} onclick={() => ask('white')}>
-        Ask about the white door
-      </button>
-      <button class="btn btn-secondary" disabled={!!asked} onclick={() => ask('black')}>
-        Ask about the black door
-      </button>
-      {#if asked}
-        <button class="btn btn-secondary" onclick={resetQuery}>Ask again</button>
-      {/if}
-    </div>
-
-    <div style="margin-top:10px">
-      <Oracle square={asked === 'black' ? '1' : '0'} circleIn="0"
-              circleOut={classicalFlipped ? '1' : '0'} {phase} />
-    </div>
-
-    {#if phase === 'done'}
-      <p class="note">
-        You now know about the {asked} door and nothing about the other one, and
-        the oracle is spent. Two doors would take two queries, and <em>n</em>
-        doors would take <em>n</em>. No cleverness helps.
+      <p class="promise">
+        <span class="promise-mark" aria-hidden="true">!</span>
+        <span>Either <strong>both doors hold money</strong>, or <strong>exactly one hides a tiger</strong>.</span>
       </p>
-    {/if}
-  </section>
 
-  <!-- Quantum -->
-  <section class="panel">
-    <div class="panel-head">
-      <h2 class="label">The quantum way</h2>
-      <div class="nav">
-        <span class="count">Step {at + 1} of {last + 1}</span>
-        <button class="nb" onclick={() => { playing = false; at = Math.max(-1, at - 1); }}
-                disabled={at < 0} aria-label="Previous step">‹</button>
-        <button class="play" onclick={() => { if (at >= last) at = -1; playing = !playing; }}
-                aria-label={playing ? 'Pause' : 'Run the algorithm'}>
-          {#if playing}
-            <svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>
-            Pause
-          {:else}
-            <svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor" aria-hidden="true"><path d="M8 5.5v13l11-6.5z"/></svg>
-            {at >= last ? 'Again' : 'Run it'}
-          {/if}
-        </button>
-        <button class="nb" onclick={() => { playing = false; at = Math.min(last, at + 1); }}
-                disabled={at === last} aria-label="Next step">›</button>
+      <p class="game-instruction">Use the oracle to decide whether opening both doors is safe. Press the center button to reveal the answer.</p>
+
+      <details class="setup">
+        <summary>Choose a setup (reveals the answer)</summary>
+        <div class="case-picker" aria-label="Choose what is behind the doors">
+          {#each WHERE as option}
+            <button
+              class="case-btn"
+              class:active={where === option.id}
+              aria-pressed={where === option.id}
+              onclick={() => place(option.id)}
+            >{option.short}</button>
+          {/each}
+        </div>
+      </details>
+    </section>
+
+    <section class="lab-panel" aria-labelledby="lab-heading">
+      <div class="section-head lab-head">
+        <div>
+          <p class="eyebrow">The oracle lab</p>
+          <h2 id="lab-heading">{MODES.find((item) => item.id === mode)?.title}</h2>
+        </div>
+        {#if mode === 'explore'}
+          <span class="query-count">{asked.length} {asked.length === 1 ? 'query' : 'queries'}</span>
+        {:else if mode === 'single'}
+          <span class="query-count">{asked.length} / 1 query</span>
+        {/if}
       </div>
-    </div>
 
-    <div class="paperbox">
-      <div class="travel">
-        <div aria-hidden="true"></div>
-        <Figure bind:this={circuitFig} source={fullCircuit}
-                idPrefix={`q-${where}`} scale={1.05} shapeOrder={SHAPES}
-                ariaLabel="The Deutsch circuit: Hadamards, the oracle once, Hadamards, then read the square" />
+      <div class="oracle-viewbar">
+        <span class="picker-label">View</span>
+        <div class="view-switch" role="group" aria-label="Show the oracle or its implementation">
+          <button
+            class:active={oracleView === 'oracle'}
+            disabled={queryRunning}
+            aria-pressed={oracleView === 'oracle'}
+            onclick={() => (oracleView = 'oracle')}
+          >Oracle</button>
+          <button
+            class:active={oracleView === 'inside'}
+            disabled={queryRunning}
+            aria-pressed={oracleView === 'inside'}
+            onclick={() => (oracleView = 'inside')}
+          >Inside</button>
+        </div>
+        {#if oracleView === 'inside'}<span class="view-description">The hidden rule is visible</span>{/if}
+      </div>
 
-        <!-- The state rides down beside the circuit rather than on it. The
-             rows are only a few pixels apart, so a state sitting on the wire
-             covers the gates either side of it. -->
-        <div class="lane">
-          {#if shownState && travelY !== null}
-            {#key shownState}
-              <div class="rider" style:top={`${travelY}px`}>
-                <Figure source={shownState} idPrefix={`s-${where}-${passed}`}
-                        scale={1} shapeOrder={SHAPES}
-                        ariaLabel="The state at this point in the circuit" />
-              </div>
-            {/key}
+      {#if mode === 'explore' || mode === 'single'}
+        <p class="mode-intro">
+          {mode === 'explore'
+            ? 'Choose a door with the square control. Query as often as you like.'
+            : 'Can you decide whether both doors are safe with just one query? Choose a door, then query.'}
+        </p>
+
+        <div class="door-picker" aria-label="Square control value">
+          <span class="picker-label">Ask about</span>
+          <button
+            class="door-choice"
+            class:active={selectedDoor === 'white'}
+            disabled={queryRunning || oracleSpent}
+            aria-pressed={selectedDoor === 'white'}
+            onclick={() => chooseDoor('white')}
+          >
+            <Figure source="0" idPrefix="pick-white" scale={0.56} shapeOrder={['square']} />
+            White door
+          </button>
+          <button
+            class="door-choice"
+            class:active={selectedDoor === 'black'}
+            disabled={queryRunning || oracleSpent}
+            aria-pressed={selectedDoor === 'black'}
+            onclick={() => chooseDoor('black')}
+          >
+            <Figure source="1" idPrefix="pick-black" scale={0.56} shapeOrder={['square']} />
+            Black door
+          </button>
+        </div>
+
+        <Oracle
+          source={oracleGate(where)}
+          view={oracleView}
+          square={querySquare}
+          circleIn={circleInput}
+          circleOut={circleOutput}
+          {phase}
+          query={asked.length}
+          offline={oracleSpent && phase === 'done'}
+          onToggleInput={toggleQueryInput}
+        />
+
+        <div class="query-actions">
+          <button class="action-btn" disabled={queryRunning || oracleSpent} onclick={ask}>
+            {queryRunning ? 'Query in progress…' : 'Query oracle'}
+          </button>
+          {#if asked.length > 0}
+            <button class="quiet-btn" disabled={queryRunning} onclick={cancelQuery}>
+              {mode === 'single' ? 'Retry same doors' : 'Clear queries'}
+            </button>
           {/if}
         </div>
-      </div>
-      <p class="say paper">
-        {stage
-          ? stage.say
-          : 'Both qubits go in, the oracle is asked once, and interference does the rest. Press run.'}
-      </p>
-    </div>
 
-    {#if finished}
-      <p class="note">
-        <span class="verdict" class:tiger={answer.tiger} class:safe={!answer.tiger}>
-          {answer.tiger ? 'The square is black — there is a tiger.' : 'The square is white — no tiger.'}
-        </span>
-        One query, and you know whether it is safe to open both doors. You do
-        <em>not</em> know which door, and you did not need to.
-      </p>
-    {/if}
+        {#if mode === 'explore' && observations.length > 0}
+          <p class="query-notes" aria-live="polite">
+            Learned so far:
+            {observations.map((door) => `${door === 'white' ? 'White' : 'Black'} door — ${where === door ? 'tiger' : 'money'}`).join(' · ')}.
+          </p>
+        {/if}
+
+        {#if mode === 'single' && oracleSpent && phase === 'done'}
+          <p class="question-card">
+            You learned one door. Is that enough to decide whether opening both is safe?
+          </p>
+        {/if}
+      {:else}
+        <p class="mode-intro">
+          Build a circuit that tells whether both doors are safe with one query. Add H gates before or after the oracle, then run or step through to the measurement.
+        </p>
+        <QuantumOracle {where} view={oracleView} {round} bind:gates bind:input={quantumInput} />
+      {/if}
+    </section>
   </section>
 
-  <p class="hint">
-    D theme · F fullscreen
-  </p>
+  <p class="hint">D theme · F fullscreen</p>
 </main>

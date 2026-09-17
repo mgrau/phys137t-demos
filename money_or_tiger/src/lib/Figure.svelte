@@ -38,8 +38,12 @@
   let host: HTMLDivElement;
   let spots: QubitSpot[] = [];
   /** Layer rows and wire columns, in diagram units, for a circuit render. */
-  let geometry: { layers: { y: number; h: number }[]; startY: number; endY: number } | null =
-    null;
+  let geometry: {
+    columns: number[];
+    layers: { y: number; h: number }[];
+    startY: number;
+    endY: number;
+  } | null = null;
   /** Diagram units per rendered pixel, so callers can place things over it. */
   let unit = 1;
 
@@ -159,6 +163,48 @@
     const svg = host?.querySelector('svg');
     if (!svg) return null;
     return svg.getBoundingClientRect().width / 2;
+  }
+
+  /**
+   * Centre of one gate cell in viewport pixels.
+   *
+   * A builder can put an HTML drop target over a gate rendered by Misty
+   * without reimplementing its spacing. Layers and wires are zero-indexed.
+   */
+  export function gatePoint(layer: number, wire: number): { x: number; y: number } | null {
+    if (!geometry) return null;
+    const row = geometry.layers[layer];
+    const x = geometry.columns[wire];
+    const svg = host?.querySelector('svg');
+    const ctm = svg?.getScreenCTM();
+    if (!row || x === undefined || !ctm) return null;
+    const point = new DOMPoint(x, row.y + row.h / 2).matrixTransform(ctm);
+    return { x: point.x, y: point.y };
+  }
+
+  /** Animated renders share the static circuit layout but omit its metadata. */
+  export function inputPoint(wire: number): { x: number; y: number } | null {
+    const svg = host?.querySelector('svg');
+    const ctm = svg?.getScreenCTM();
+    if (!ctm) return null;
+    const layout = geometry ?? render(source.replace(/^animate\b.*$/gm, ''), {
+      background: false, check: false,
+      ...(shapeOrder ? { shapeOrder: shapeOrder as never } : {}),
+    }).geometry;
+    if (!layout || layout.columns[wire] === undefined) return null;
+    const point = new DOMPoint(layout.columns[wire], layout.startY).matrixTransform(ctm);
+    return { x: point.x, y: point.y };
+  }
+
+  /** A state checkpoint in viewport coordinates, just after a circuit row. */
+  export function statePoint(layer: number): { x: number; y: number } | null {
+    const svg = host?.querySelector('svg');
+    const ctm = svg?.getScreenCTM();
+    if (!geometry || !ctm) return null;
+    const row = geometry.layers[layer];
+    const y = layer < 0 ? geometry.startY : row ? row.y + row.h + 8 : geometry.endY;
+    const point = new DOMPoint(geometry.columns[0], y).matrixTransform(ctm);
+    return { x: point.x, y: point.y };
   }
 
   /**

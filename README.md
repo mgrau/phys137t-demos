@@ -155,22 +155,35 @@ points stay the only thing on the plot that came from the experiment.
 
 ### Money or tiger — built
 
-Lecture 8's game: two doors, a tiger behind at most one, and an Oracle that
-flips the circle if there is a tiger behind the door the square selects. The
-classical panel gives you one query and lets you discover that it only covers
-one door; the quantum panel runs the Hadamard sandwich a stage at a time.
+Lecture 8's game: two hinged doors, money behind both or a tiger behind exactly
+one, and one button that opens both. The square selects a door; the oracle flips
+the circle exactly when the selected door hides a tiger.
 
-Follows the **lecture's** convention: `in 10`, and a black square means tiger.
-Chapter 5 of the notes runs the same circuit from `in 11`, where a *white*
-square means tiger. Both are internally consistent and they are inverses of
-each other, so a student reading both would get opposite rules. Worth
-reconciling in the source material.
+Three modes share the same rule: **Explore** permits unlimited queries,
+**One query** switches the oracle off after one use, and **Quantum oracle** lets
+students place Hadamards before or after the oracle and measure both qubits.
+Every mode offers either the sealed `CNOT 1 2 "Tiger?"` artwork or its identity,
+CNOT, or NOT–CNOT–NOT implementation. The sealed artwork does not dictate the
+hidden rule; its implicit action is simulated separately and checked against
+the implementation.
 
-Nothing is written down: the oracle, every intermediate state and the verdict
-are all simulated from the circuit, so the diagram on screen and the answer it
-gives cannot disagree. Both tiger placements produce identical states at every
-stage, which is the lecture's point — the algorithm learns *whether*, not
-*which*.
+Click either initial qubit to toggle its color. Quantum inputs default to a
+white square and black circle (`shape so`, `in 01`). With H gates on both inputs
+and the square output, a square that retains its input color means no tiger;
+a changed square means one tiger. The final circle H is optional. Other input
+and gate choices are checked across all three setups before interpreting a
+result as conclusive.
+
+Both final measurements sample one joint branch, preserving correlations.
+**Show quantum state** reveals the moving states and a step-by-step state card;
+with it off, only the prepared input and measured output are visible. Changing
+an input or gate clears stale measurements. Merely toggling the state display
+does not restart playback or re-sample.
+
+`npm --prefix money_or_tiger run test:quantum` checks all 192 combinations of
+inputs, gate placements, and door setups in both views. For interaction checks,
+build the app, then run `node scripts/check-ui.mjs /path/to/jsdom/lib/api.js`
+from `money_or_tiger/`.
 
 ## Spacing
 
