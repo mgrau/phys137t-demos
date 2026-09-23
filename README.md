@@ -8,6 +8,7 @@ course folder. It is the source for the shared public demo collection:
 - Quantum jumps: <https://mgrau.github.io/phys137t-demos/quantum_jumps/>
 - Measurement quiz: <https://mgrau.github.io/phys137t-demos/measurement_quiz/>
 - Money or tiger: <https://mgrau.github.io/phys137t-demos/money_or_tiger/>
+- Bell test: <https://mgrau.github.io/phys137t-demos/bell_test/>
 
 Each demo remains an independent Svelte app. The root build compiles them into
 separate static subfolders and adds the responsive selector at the site root.
@@ -21,9 +22,24 @@ npm run dev
 ./publish.sh
 ```
 
-Add future demos as sibling folders. Two edits wire one up: an entry in the
-`DEMOS` array in `hub/app.js`, which is the single source of truth the sidebar
-list renders from, and its build output in `scripts/build.sh`.
+Add future demos as sibling folders. Register them in the `DEMOS` array in
+`hub/app.js`, add their output to `scripts/build.sh`, and include their checks
+and dependency installation in `package.json` and `.github/workflows/deploy.yml`.
+
+## Bell test — built
+
+Lecture 10's Hardy-style coin game uses the circle/square and signed-cloud
+notation from PS5. Compare local answer sheets with the entangled `00|01|10`
+resource: heads means direct measurement, tails means H then measurement.
+Step through a round or collect 1,000 trials, inspect all 16 local plans, and
+optionally reveal the intermediate quantum cloud and theoretical rates.
+
+The three forbidden events have zero ideal quantum probability; the point
+event has probability 1/12 on tails–tails and 1/48 across fair-coin trials.
+Fixed-setting exploration stays separate from random-trial totals. The Bell
+difference uses conditional rates and does not claim statistical significance
+for a finite run. Run `npm test` for physics checks and
+`npm --prefix bell_test run test:browser` for browser checks.
 
 ## Planned
 

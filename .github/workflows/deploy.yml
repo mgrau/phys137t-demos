@@ -31,12 +31,19 @@ jobs:
             quantum_jumps/package-lock.json
             measurement_quiz/package-lock.json
             money_or_tiger/package-lock.json
+            bell_test/package-lock.json
       - run: npm ci --prefix interference
       - run: npm ci --prefix quantum_jumps
       - run: npm ci --prefix measurement_quiz
       - run: npm ci --prefix money_or_tiger
+      - run: npm ci --prefix bell_test
       - run: npm run check
+      - run: npm test
       - run: npm run build
+      - run: npx playwright install --with-deps chromium
+        working-directory: bell_test
+      - run: npm run test:browser
+        working-directory: bell_test
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:

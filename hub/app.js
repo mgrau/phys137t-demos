@@ -28,6 +28,12 @@ const DEMOS = [
     lecture: 8,
     description: 'One query tells you whether there is a tiger, not which door',
   },
+  {
+    slug: 'bell_test',
+    title: 'Bell test',
+    lecture: 10,
+    description: 'Shared answer sheets and entangled qubits in the coin game',
+  },
 ];
 
 const list = document.querySelector('#demo-list');
