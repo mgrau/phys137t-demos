@@ -1,0 +1,33 @@
+{
+  "name": "phys137t-exam-practice",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1 --port 5177",
+    "build": "vite build",
+    "preview": "vite preview --host 127.0.0.1 --port 4177",
+    "check": "svelte-check --tsconfig ./tsconfig.json",
+    "test": "vitest run tests/engine.test.ts",
+    "test:browser": "playwright test"
+  },
+  "dependencies": {
+    "misty-states": "github:mgrau/misty_states#23f4e5316c01f338675d4e81162d53e3618cbd7d",
+    "yaml": "^2.8.1",
+    "marked": "^15.0.12",
+    "dompurify": "^3.2.6"
+  },
+  "overrides": {
+    "vitest": { "vite": "$vite" }
+  },
+  "devDependencies": {
+    "@sveltejs/vite-plugin-svelte": "^5.0.3",
+    "@playwright/test": "^1.55.0",
+    "svelte": "^5.19.0",
+    "svelte-check": "^4.1.4",
+    "typescript": "^5.7.3",
+    "vite": "^6.0.11",
+    "vitest": "^4.1.11",
+    "@types/node": "^22.0.0"
+  }
+}

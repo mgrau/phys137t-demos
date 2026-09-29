@@ -9,6 +9,7 @@ course folder. It is the source for the shared public demo collection:
 - Measurement quiz: <https://mgrau.github.io/phys137t-demos/measurement_quiz/>
 - Money or tiger: <https://mgrau.github.io/phys137t-demos/money_or_tiger/>
 - Bell test: <https://mgrau.github.io/phys137t-demos/bell_test/>
+- Exam practice: <https://mgrau.github.io/phys137t-demos/exam_practice/>
 
 Each demo remains an independent Svelte app. The root build compiles them into
 separate static subfolders and adds the responsive selector at the site root.
@@ -25,6 +26,20 @@ npm run dev
 Add future demos as sibling folders. Register them in the `DEMOS` array in
 `hub/app.js`, add their output to `scripts/build.sh`, and include their checks
 and dependency installation in `package.json` and `.github/workflows/deploy.yml`.
+
+## Exam practice — built
+
+35 questions across the first five weeks, with six answer formats: choices,
+numbers, probabilities, state drawings, truth tables and circuit preparation.
+Students check answers explicitly; worked solutions unlock after an adjustable
+number of incorrect attempts. State/circuit equivalence and measurement
+probabilities come from the latest pinned `misty-states` kernel.
+
+The app fits its viewport, switches to question/answer tabs on phones, and
+supports Canvas embedding. New questions are standalone Markdown files with
+small YAML headers; no code registry edits are needed. See
+[authoring and development](exam_practice/README.md) and the ready-to-paste
+[Canvas embed](exam_practice/canvas-embed.html).
 
 ## Bell test — built
 

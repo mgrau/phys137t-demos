@@ -34,6 +34,12 @@ const DEMOS = [
     lecture: 10,
     description: 'Shared answer sheets and entangled qubits in the coin game',
   },
+  {
+    slug: 'exam_practice',
+    title: 'Exam practice',
+    lecture: 11,
+    description: 'Practice across Weeks 1–5 with state drawings, circuits, and worked solutions',
+  },
 ];
 
 const list = document.querySelector('#demo-list');
