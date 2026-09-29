@@ -156,15 +156,19 @@ export function fraction(n: number): string {
 }
 export function finalStep(q: Question): string {
   const key = expected(q);
-  if (q.kind === 'choice') return `### Answer\n\n${q.answer!.map(i => `- ${q.options![i - 1]}`).join('\n')}`;
+  if (q.kind === 'choice') return `### Answer\n\n${q.answer!.map(i => {
+    const option = q.options![i - 1];
+    return typeof option === 'string' ? `- ${option}` : `${option.label}\n\n\`\`\`misty\nshape ${q.shapes}\n${option.state}\n\`\`\``;
+  }).join('\n\n')}`;
   if (q.kind === 'circuit') return `### One valid circuit\n\nOther circuits that prepare the same state also count.\n\n\`\`\`misty\nshape ${q.shapes}\nin ${q.input}\n${q.example}\nout calculate\n\`\`\``;
   if (q.kind === 'state') return `### Result\n\nEquivalent ordering, factoring, overall sign and common scale all count.\n\n\`\`\`misty\nshape ${q.shapes}\n${stateSource(key.state!)}\n\`\`\``;
-  if (q.kind === 'truth-table') return `### Completed table\n\n| Input | Output |\n|---|---|\n${key.rows!.map((r,i) => `| ${r} | ${key.values![i].toString(2).padStart(q.qubits, '0')} |`).join('\n')}\n\nWhite = 0; black = 1. Keep the displayed shape order.`;
+  if (q.kind === 'truth-table') return `### Completed table\n\n| Input | Output |\n|---|---|\n${key.rows!.map((r,i) => `| \`misty: ${r}\` | \`misty: ${key.values![i].toString(2).padStart(q.qubits, '0')}\` |`).join('\n')}\n\nKeep the displayed shape order.`;
   const labels = q.kind === 'number' ? q.fields!.map(f => f.label) : q.events!.map(e => e.label);
   return `### Answer\n\n${labels.map((label,i) => `- **${label}:** ${fraction(key.values![i])}${q.kind === 'probability' ? ` (≈ ${(100 * key.values![i]).toFixed(2)}%)` : ''}`).join('\n')}`;
 }
 
 export function validatePhysics(q: Question) {
   expected(q);
+  for (const option of q.options ?? []) if (typeof option !== 'string') readState(option.state, q.qubits);
   if (q.kind === 'circuit' && grade(q, { ...emptyAnswer(), text: q.example! }).status !== 'correct') throw new Error(`${q.id}: example circuit does not prepare target.`);
 }

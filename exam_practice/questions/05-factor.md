@@ -28,4 +28,4 @@ Group the first two and last two terms. Each group contains triangle white minus
 
 ### Inspect the remaining pair
 
-Circle and square remain in 01 + 10. They cannot be independent: independent clouds with both colors would also produce 00 and 11. The triangle factors away.
+Circle and square remain in opposite-color possibilities. They cannot be independent: independent clouds with both colors would also produce `misty: 00` and `misty: 11`. The triangle factors away.

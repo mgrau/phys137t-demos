@@ -23,8 +23,16 @@ Prepare the displayed target from three white qubits. Keep the **relative minus 
 
 ### Prepare the signs and opposite square
 
-Apply NOT to circle and square, giving 110. H on the black circle gives 010 − 110.
+Apply NOT to circle and square, giving `misty: 110`. H on the black circle creates a minus cloud:
+
+```misty
+010|-110
+```
 
 ### Use the circle as control twice
 
-CNOT from circle to square changes the negative term to −100. CNOT from circle to triangle changes it to −101. The positive 010 term stays unchanged.
+CNOT from circle to square flips the square only in the negative term. CNOT from circle to triangle then flips its triangle. The positive term stays unchanged:
+
+```misty
+010|-110 -> 010|-100 -> 010|-101
+```

@@ -21,4 +21,8 @@ Flip the square only when the input circle is black. Keep the circle unchanged a
 
 ### Apply NOT, then SWAP
 
-Flip the circle. Finally exchange the two colors. Keep these steps in the drawn order. For input 00: 00 → 00 → 10 → 01.
+Flip the circle. Finally exchange the two colors. Keep these steps in the drawn order. For a white circle and white square:
+
+```misty
+00 -> 00 -> 10 -> 01
+```

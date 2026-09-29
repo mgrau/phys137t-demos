@@ -17,7 +17,7 @@ Measure **only the square**. The circle is not measured. Give the square’s col
 
 ### Combine identical complete patterns
 
-The amplitudes are 2 for 00, 1 for 01 and 1 for 11. Their squared weights are 4, 1 and 1.
+The amplitudes are 2 for `misty: 00`, 1 for `misty: 01` and 1 for `misty: 11`. Their squared weights are 4, 1 and 1.
 
 ### Group by the measured square
 

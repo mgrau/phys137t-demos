@@ -24,4 +24,8 @@ Multiply circle white-plus-black by square white-plus-black. Every circle term p
 
 ### Compare the expansion
 
-The result is exactly 00 + 01 + 10 + 11, with all signs positive. The entire state factors into independent qubits.
+The expansion matches every possibility and sign in the given state. The entire state factors into independent qubits:
+
+```misty
+00|01|10|11 = (0|1)(0|1)
+```

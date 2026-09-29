@@ -6,12 +6,13 @@ export const WEEKS = [
   'Entanglement & nonlocality',
 ];
 export type Kind = 'choice' | 'number' | 'probability' | 'state' | 'truth-table' | 'circuit';
+export type ChoiceOption = string | { state: string; label: string };
 export interface Question {
   id: string; title: string; week: number; kind: Kind; source: string;
   prompt: string; steps: string[];
   diagram?: string; shapes: string; qubits: number;
   circuit?: string; given?: string;
-  options?: string[]; answer?: number[];
+  options?: ChoiceOption[]; answer?: number[];
   fields?: { label: string; value: number }[];
   events?: { label: string; pattern: string }[];
   input?: string; target?: string; example?: string;
@@ -48,7 +49,10 @@ export function parseQuestion(raw: string, filename: string): Question {
   const pattern = (v: unknown) => typeof v === 'string' && v.length === q.qubits && /^[01?]+$/.test(v);
   if (q.given && !pattern(q.given)) fail('given must contain one 0, 1 or ? per qubit.');
   if (q.kind === 'choice') {
-    if (!Array.isArray(q.options) || q.options.length < 2 || !q.options.every(s => typeof s === 'string')) fail('Supply at least two text options.');
+    if (!Array.isArray(q.options) || q.options.length < 2 || !q.options.every(option =>
+      typeof option === 'string' ? !!option.trim() : option && typeof option.state === 'string' && !!option.state.trim() && typeof option.label === 'string' && !!option.label.trim()
+        && Object.keys(option).every(key => ['state', 'label'].includes(key))
+    )) fail('Supply at least two options: text, or {state: "...", label: "description of the diagram"}.');
     if (!Array.isArray(q.answer) || !q.answer.length || q.answer.some(n => !Number.isInteger(n) || n < 1 || n > q.options!.length) || new Set(q.answer).size !== q.answer.length) fail('answer must list unique option numbers, starting at 1.');
   }
   if (q.kind === 'number' && (!Array.isArray(q.fields) || !q.fields.length || q.fields.some(f => typeof f.label !== 'string' || !Number.isFinite(f.value)))) fail('fields need a label and numeric value.');

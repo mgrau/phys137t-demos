@@ -122,6 +122,24 @@ include `qubits` (1–3, default 1), `shapes` (default `o`, `os`, or `os^`), and
 
 ### Answer formats
 
+An answer choice can also be a state diagram. Use a `state` expression and a
+plain-language `label` for screen readers; the student sees the rendered cloud:
+
+```yaml
+options:
+  - state: "00|-11"
+    label: "White-white minus black-black."
+  - state: "00|11"
+    label: "White-white plus black-black."
+answer: [1]
+```
+
+For a small diagram inside prose or a Markdown table, use an inline code span
+prefixed with `misty:`, for example `` `misty: 00` ``. This displays white circle
+and white square rather than a binary string. Use fenced `misty` blocks for
+larger clouds and circuits. Gate palettes use the library's rendered gallery
+symbols, with gate names supplied as tooltips and accessible labels.
+
 | Kind | Additional metadata | Grading |
 | --- | --- | --- |
 | `choice` | `options: ["…", "…"]`, `answer: [1]` | Exact set of selected option numbers; multiple numbers enable select-all |

@@ -18,8 +18,18 @@ Alice measures her circle directly. Bob applies H to his square and measures. Wh
 
 ### Apply H only to the square
 
-The input 00 contributes 00+01. Input 01 contributes 00−01. Input 10 contributes 10+11.
+Keep the circle as it is and apply H to each square:
+
+```misty
+00 -> 00|01
+01 -> 00|-01
+10 -> 10|11
+```
 
 ### Look for cancellation
 
-The 01 contributions cancel exactly. The state contains 2×00, 10 and 11, but no 01. Its probability is zero.
+The white-circle, black-square contributions cancel exactly. The remaining cloud has no such possibility, so its probability is zero:
+
+```misty
+00|00|10|11
+```

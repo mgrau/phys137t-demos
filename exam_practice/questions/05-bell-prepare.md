@@ -20,8 +20,17 @@ Starting with both qubits white, prepare the target entangled state. **Any circu
 
 ### Create two circle possibilities
 
-Apply H to the circle. The square remains white, giving 00 + 10.
+Apply H to the circle. The square remains white:
+
+```misty
+00|10
+```
 
 ### Correlate the square with the circle
 
-Use the circle as CNOT control and square as target. The 00 term stays 00; the 10 term becomes 11.
+Use the circle as CNOT control and square as target. The white-circle possibility stays unchanged; the black-circle possibility flips the square:
+
+```misty
+00 -> 00
+10 -> 11
+```

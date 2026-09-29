@@ -21,8 +21,12 @@ describe('authored bank', () => {
   for (const question of bank) it(`${question.id}: computable answers and renderable question/solution`, () => {
     validatePhysics(question);
     if (diagramOf(question)) expect(render(diagramOf(question), { check: false }).svg).toContain('<svg');
+    for (const option of question.options ?? []) {
+      if (typeof option !== 'string') expect(render(`shape ${question.shapes}\n${option.state}`, { check: false }).svg).toContain('<svg');
+    }
     for (const step of [...question.steps, finalStep(question)]) {
       for (const match of step.matchAll(/```misty\s*\n([\s\S]*?)```/g)) expect(render(`shape ${question.shapes}\n${match[1]}`).svg).toContain('<svg');
+      for (const match of step.matchAll(/`misty:\s*([^`]+)`/g)) expect(render(`shape ${question.shapes}\n${match[1]}`).svg).toContain('<svg');
     }
   });
   it('rejects typos, duplicate IDs, ambiguous unquoted bit patterns and impossible givens', () => {
@@ -54,6 +58,18 @@ describe('independent worked examples', () => {
 });
 
 describe('grading physical meaning', () => {
+  it('diagram choices preserve the product signs and remain gradable', () => {
+    const product = q('product');
+    const target = readState(product.diagram!, product.qubits);
+    product.options!.forEach((option, i) => {
+      if (typeof option === 'string') throw new Error('Product choices should be drawn states.');
+      const correct = sameState(readState(option.state, product.qubits), target);
+      expect(correct).toBe(product.answer!.includes(i + 1));
+      expect(grade(product, { ...emptyAnswer(), selected: [i + 1] }).status).toBe(correct ? 'correct' : 'incorrect');
+    });
+    expect(() => parseQuestion(files['02-product.md'].replace(/    label: .*\n/g, ''), 'unlabelled.md')).toThrow('label');
+    expect(() => validatePhysics({ ...product, options: [{ state: '0', label: 'Incomplete register' }] })).toThrow('2 qubits');
+  });
   it('accepts reordering, factoring, global sign and common scale', () => {
     const question = q('conditional-black');
     for (const text of ['01|-11', '-11|01', '(0|-1)1', '-01|11', '2*01|-2*11']) expect(grade(question, answer(text)).status).toBe('correct');

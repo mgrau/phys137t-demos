@@ -9,7 +9,7 @@ circuit: |
   CNOT 2 -> 1
 ---
 
-Complete the truth table. The **square controls the circle**. White is 0; black is 1.
+Complete the truth table. The **square controls the circle**.
 
 ## Solution
 

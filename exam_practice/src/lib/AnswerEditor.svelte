@@ -20,7 +20,12 @@
   <p class="help">{q.answer!.length > 1 ? 'Select all that apply.' : 'Choose one answer.'}</p>
   <div class="choices" role="group" aria-label="Answer choices">
     {#each optionOrder as i, displayed}
-      <button class="choice" class:selected={answer.selected.includes(i + 1)} aria-pressed={answer.selected.includes(i + 1)} onclick={() => choice(i + 1)}><span class="choice-mark">{answer.selected.includes(i + 1) ? '✓' : String.fromCharCode(65 + displayed)}</span><span>{q.options![i]}</span></button>
+      {@const option = q.options![i]}
+      <button class="choice" class:diagram-choice={typeof option !== 'string'} class:selected={answer.selected.includes(i + 1)} aria-pressed={answer.selected.includes(i + 1)} onclick={() => choice(i + 1)}>
+        <span class="choice-mark">{answer.selected.includes(i + 1) ? '✓' : String.fromCharCode(65 + displayed)}</span>
+        {#if typeof option === 'string'}<span>{option}</span>
+        {:else}<Figure source={`shape ${q.shapes}\n${option.state}`} label={option.label} variant="choice" />{/if}
+      </button>
     {/each}
   </div>
 {:else if q.kind === 'number' || q.kind === 'probability'}

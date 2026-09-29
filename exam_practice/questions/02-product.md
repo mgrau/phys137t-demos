@@ -7,14 +7,18 @@ source: Adapted from Fall 2026 PS2, mist rules; Fall 2024 Midterm 1 practice, En
 qubits: 2
 diagram: "(0|1)(0|-1)"
 options:
-  - "00 − 01 + 10 − 11"
-  - "00 + 01 + 10 + 11"
-  - "00 − 11"
-  - "00 + 11"
+  - state: "00|-01|10|-11"
+    label: "White-white, minus white-black, plus black-white, minus black-black."
+  - state: "00|01|10|11"
+    label: "White-white, white-black, black-white and black-black, all positive."
+  - state: "00|-11"
+    label: "White-white minus black-black."
+  - state: "00|11"
+    label: "White-white plus black-black."
 answer: [1]
 ---
 
-Which expansion represents the product shown? Read each two-bit term in circle–square order.
+Which expansion represents the product shown? Read each pair in circle–square order.
 
 ## Solution
 
@@ -24,4 +28,8 @@ Pair the first cloud’s white with both terms of the second cloud. Then pair it
 
 ### Multiply the signs
 
-The second cloud’s black is negative. Thus both terms ending in black are negative: 00 − 01 + 10 − 11.
+The second cloud’s black square is negative. Thus both terms with a black square are negative:
+
+```misty
+00|-01|10|-11
+```

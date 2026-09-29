@@ -21,7 +21,13 @@ Alice and Bob both apply H to their qubits, then measure. Give all four joint pr
 
 ### Expand the three input terms
 
-H on both wires sends 00 to 00+01+10+11, 01 to 00−01+10−11, and 10 to 00+01−10−11.
+Apply H to both shapes in each input possibility, keeping its signs:
+
+```misty
+00 -> 00|01|10|11
+01 -> 00|-01|10|-11
+10 -> 00|01|-10|-11
+```
 
 ### Combine and square
 

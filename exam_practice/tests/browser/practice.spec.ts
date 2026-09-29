@@ -41,6 +41,7 @@ test('state drawing supports signed terms and accepts equivalent typed factoring
 });
 test('builds an alternative entangling circuit with accessible controls', async ({ page }) => {
   await question(page, 'bell-prepare');
+  await expect(page.locator('.gate-palette button svg')).toHaveCount(4);
   await page.getByLabel('Gate wire or control').selectOption('2');
   await page.getByRole('button', { name: 'Add gate', exact: true }).click();
   await page.getByRole('button', { name: 'CNOT', exact: true }).click();
@@ -108,6 +109,24 @@ test('truth-table shapes keep input and output order', async ({ page }) => {
   }
   await page.getByRole('button', { name: 'Check answer', exact: true }).click();
   await expect(page.getByRole('status')).toContainText('Correct');
+  await page.getByRole('button', { name: 'Show solution' }).click();
+  await page.getByRole('button', { name: 'Next step' }).click();
+  await page.getByRole('button', { name: 'Next step' }).click();
+  await expect(page.getByRole('heading', { name: 'Completed table' })).toBeVisible();
+  await expect(page.locator('.prose table td svg')).toHaveCount(8);
+  await expect(page.getByRole('img', { name: 'White circle, Black square', exact: true }).first()).toBeVisible();
+});
+test('cloud choices and their worked answer are rendered in course notation', async ({ page }) => {
+  await question(page, 'product');
+  await expect(page.locator('.choices button svg')).toHaveCount(4);
+  await page.getByRole('button', { name: /minus white-black, plus black-white/ }).click();
+  await page.getByRole('button', { name: 'Check answer', exact: true }).click();
+  await expect(page.getByRole('status')).toContainText('Correct');
+  await page.getByRole('button', { name: 'Show solution' }).click();
+  await page.getByRole('button', { name: 'Next step' }).click();
+  await expect(page.locator('.answer-panel .prose svg')).toHaveCount(1);
+  await page.getByRole('button', { name: 'Next step' }).click();
+  await expect(page.locator('.answer-panel .prose svg')).toHaveCount(1);
 });
 for (const [width,height] of [[1366,768],[1024,600],[800,500],[390,844],[375,667]]) {
   test(`all questions fit ${width}×${height} with reachable controls`, async ({ page }) => {

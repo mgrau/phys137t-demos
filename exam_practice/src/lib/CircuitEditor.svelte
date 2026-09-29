@@ -2,8 +2,9 @@
   import { onMount, untrack } from 'svelte';
   import { render, type RenderResult } from 'misty-states/render';
   import { createBoard, type Board } from 'misty-states/ui';
-  import { parseCircuit, insertGate, type Droppable } from 'misty-states/kernel';
+  import { GATE_GALLERY, parseCircuit, insertGate, type Droppable } from 'misty-states/kernel';
   import type { Question } from './questions';
+  import Figure from './Figure.svelte';
   let { question: q, value, onchange }: { question: Question; value: string; onchange: (value: string) => void } = $props();
   const id = $props.id();
   const names: Record<string, string> = { o: 'circle', s: 'square', '^': 'triangle', d: 'diamond' };
@@ -21,6 +22,7 @@
   const count = $derived(value.split(/[\n;]/).filter(s => s.trim()).length);
   const span = (g: string) => g === 'TOFFOLI' ? 3 : ['CNOT', 'SWAP'].includes(g) ? 2 : 1;
   const droppable = (g: string): Droppable => ({ head: g, wires: span(g) });
+  const swatch = (head: string) => GATE_GALLERY.flatMap(group => group.items).find(item => item.drop?.head === head)!;
 
   function commit(full: string) {
     // The input is supplied by the question. Dragging cannot change its colors,
@@ -68,7 +70,12 @@
 <div class="circuit-editor">
   <p class="help">Drag a gate onto the circuit, or choose its wires and add it. Move a placed gate by dragging; drag it out to the left to remove it.</p>
   <div class="gate-palette">
-    {#each q.gates! as item}<button aria-pressed={gate === item} onpointerdown={e => { gate = item; if (count < q.maxGates) board?.carryNew(droppable(item), e); }} onclick={() => gate = item}>{item === 'X' ? 'NOT' : item}</button>{/each}
+    {#each q.gates! as item}
+      {@const tile = swatch(item)}
+      <button aria-label={item === 'X' ? 'NOT' : item} title={tile.name} aria-pressed={gate === item} onpointerdown={e => { gate = item; if (count < q.maxGates) board?.carryNew(droppable(item), e); }} onclick={() => gate = item}>
+        <Figure source={tile.source ?? tile.code} label={tile.name} variant="gate" />
+      </button>
+    {/each}
   </div>
   <div class="wire-controls">
     <label>{span(gate) > 1 ? (gate === 'SWAP' ? 'First wire' : 'Control') : 'Wire'}
